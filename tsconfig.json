@@ -6,7 +6,9 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "resolveJsonModule": true,
+    "jsx": "react-native"
   },
   "include": [
     "**/*.ts",

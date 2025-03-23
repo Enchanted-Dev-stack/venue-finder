@@ -1,0 +1,154 @@
+{
+  "venues": [
+    {
+      "id": "1",
+      "name": "Café Coffee Day",
+      "type": "cafe",
+      "coordinates": {
+        "latitude": 21.2657,
+        "longitude": 81.5912
+      },
+      "pricePerPerson": 300,
+      "rating": 4.2,
+      "amenities": ["wifi", "air_conditioning", "parking"],
+      "openHours": "9:00 AM - 11:00 PM",
+      "description": "Popular coffee chain with comfortable seating",
+      "images": ["ccd_1.jpg", "ccd_2.jpg"]
+    },
+    {
+      "id": "2",
+      "name": "Gaming Warriors",
+      "type": "gaming_zone",
+      "coordinates": {
+        "latitude": 21.2722,
+        "longitude": 81.5932
+      },
+      "pricePerPerson": 200,
+      "rating": 4.5,
+      "amenities": ["wifi", "air_conditioning", "gaming_consoles", "snacks"],
+      "openHours": "11:00 AM - 11:00 PM",
+      "description": "Modern gaming center with latest consoles and PCs",
+      "images": ["gaming_1.jpg"]
+    },
+    {
+      "id": "3",
+      "name": "Telibandha Lake Garden",
+      "type": "openspace",
+      "coordinates": {
+        "latitude": 21.2502,
+        "longitude": 81.6397
+      },
+      "pricePerPerson": 0,
+      "rating": 4.3,
+      "amenities": ["parking", "jogging_track", "food_vendors"],
+      "openHours": "5:00 AM - 9:00 PM",
+      "description": "Peaceful lakeside garden perfect for evening walks",
+      "images": ["lake_1.jpg", "lake_2.jpg"]
+    },
+    {
+      "id": "4",
+      "name": "The Book Café",
+      "type": "cafe",
+      "coordinates": {
+        "latitude": 21.2712,
+        "longitude": 81.5988
+      },
+      "pricePerPerson": 400,
+      "rating": 4.6,
+      "amenities": ["wifi", "air_conditioning", "book_collection", "power_outlets"],
+      "openHours": "8:00 AM - 10:00 PM",
+      "description": "Cozy café with extensive book collection",
+      "images": ["bookcafe_1.jpg"]
+    },
+    {
+      "id": "5",
+      "name": "Chill Zone Lounge",
+      "type": "chillzone",
+      "coordinates": {
+        "latitude": 21.2682,
+        "longitude": 81.5922
+      },
+      "pricePerPerson": 500,
+      "rating": 4.4,
+      "amenities": ["wifi", "air_conditioning", "board_games", "food_service"],
+      "openHours": "12:00 PM - 12:00 AM",
+      "description": "Modern lounge with relaxed atmosphere",
+      "images": ["lounge_1.jpg"]
+    },
+    {
+      "id": "6",
+      "name": "Marine Drive",
+      "type": "openspace",
+      "coordinates": {
+        "latitude": 21.2472,
+        "longitude": 81.6352
+      },
+      "pricePerPerson": 0,
+      "rating": 4.5,
+      "amenities": ["parking", "street_food", "seating"],
+      "openHours": "24/7",
+      "description": "Popular hangout spot along the lake",
+      "images": ["marine_1.jpg"]
+    },
+    {
+      "id": "7",
+      "name": "Pixel Paradise",
+      "type": "gaming_zone",
+      "coordinates": {
+        "latitude": 21.2692,
+        "longitude": 81.5902
+      },
+      "pricePerPerson": 250,
+      "rating": 4.3,
+      "amenities": ["wifi", "air_conditioning", "gaming_pcs", "cafe"],
+      "openHours": "10:00 AM - 10:00 PM",
+      "description": "Gaming café with high-end PCs",
+      "images": ["pixel_1.jpg"]
+    },
+    {
+      "id": "8",
+      "name": "Barista",
+      "type": "cafe",
+      "coordinates": {
+        "latitude": 21.2662,
+        "longitude": 81.5962
+      },
+      "pricePerPerson": 350,
+      "rating": 4.1,
+      "amenities": ["wifi", "air_conditioning", "parking"],
+      "openHours": "8:00 AM - 11:00 PM",
+      "description": "Coffee chain with comfortable ambiance",
+      "images": ["barista_1.jpg"]
+    },
+    {
+      "id": "9",
+      "name": "Board Game Adda",
+      "type": "chillzone",
+      "coordinates": {
+        "latitude": 21.2732,
+        "longitude": 81.5942
+      },
+      "pricePerPerson": 200,
+      "rating": 4.4,
+      "amenities": ["wifi", "air_conditioning", "board_games", "cafe"],
+      "openHours": "11:00 AM - 11:00 PM",
+      "description": "Board game café with extensive collection",
+      "images": ["boardgame_1.jpg"]
+    },
+    {
+      "id": "10",
+      "name": "Purana Raipur Park",
+      "type": "openspace",
+      "coordinates": {
+        "latitude": 21.2622,
+        "longitude": 81.5882
+      },
+      "pricePerPerson": 0,
+      "rating": 4.2,
+      "amenities": ["parking", "jogging_track", "children_play_area"],
+      "openHours": "5:00 AM - 9:00 PM",
+      "description": "Historic park with green spaces",
+      "images": ["park_1.jpg"]
+    }
+  ]
+} 
