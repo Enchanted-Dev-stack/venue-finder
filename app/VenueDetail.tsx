@@ -7,6 +7,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { Ionicons } from "@expo/vector-icons"
 import MapView from 'react-native-maps';
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs"
+import { StatusBar } from 'expo-status-bar'
 
 import VenueCard from "@/components/VenueCard"
 
@@ -255,9 +256,11 @@ export default function VenueDetailScreen() {
   const navigation = useNavigation()
   const route = useRoute()
   const [isFavorite, setIsFavorite] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   return (
     <View style={styles.container}>
+      <StatusBar hidden />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color="#fff" />
@@ -274,7 +277,7 @@ export default function VenueDetailScreen() {
 
       <View style={styles.scrollView}>
         <View style={styles.heroSection}>
-          <Image source={{ uri: venueDetails.images[0] }} style={styles.heroImage} />
+          <Image source={{ uri: venueDetails.images[activeImageIndex] }} style={styles.heroImage} />
           <View style={styles.heroOverlay} />
           <View style={styles.heroContent}>
             <Text style={styles.venueName}>{venueDetails.name}</Text>

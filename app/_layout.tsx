@@ -4,17 +4,94 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Slot, Stack, useSegments, useRouter, Redirect } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { View, Text, StyleSheet, Animated } from 'react-native';
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { AuthProvider, useAuth } from "@/contexts/auth";
+import LogoSVG from "@/components/LogoSVG";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+function AppSplashScreen({ onFinish }: { onFinish: () => void }) {
+  const fadeAnim = useState(new Animated.Value(0))[0];
+
+  useEffect(() => {
+    // Start fade-in animation
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+
+    // Set timeout to finish after 3 seconds
+    const timeout = setTimeout(() => {
+      onFinish();
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  return (
+    <View style={styles.splashContainer}>
+      <StatusBar style="light" />
+      <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
+        <LogoSVG width={120} height={120} color="#FFFFFF" />
+        <Text style={styles.splashTitle}>Venue Finder</Text>
+        <Text style={styles.splashSubtitle}>Discover amazing places</Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+function RootLayoutNav() {
+  const { user, isLoading } = useAuth();
+  const [showingSplash, setShowingSplash] = useState(true);
+  
+  // Handle the splash screen finish
+  const handleSplashFinish = () => {
+    setShowingSplash(false);
+  };
+
+  if (showingSplash) {
+    return <AppSplashScreen onFinish={handleSplashFinish} />;
+  }
+
+  // After splash, we need to decide which stack to show
+  if (isLoading) {
+    // Still loading auth state, show a blank screen
+    return null;
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={DefaultTheme}>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          {!user ? (
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          ) : (
+            <>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
+              <Stack.Screen name="MyReviews" options={{ headerShown: false }} />
+              <Stack.Screen name="SavedVenues" options={{ headerShown: false }} />
+              <Stack.Screen name="VenueDetail" options={{ headerShown: false }} />
+            </>
+          )}
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </ThemeProvider>
+    </GestureHandlerRootView>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -72,27 +149,33 @@ export default function RootLayout() {
   }, [loaded]);
 
   if (!loaded) {
-    return null;
+    return <Slot />;
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
-          <Stack.Screen name="MyReviews" options={{ headerShown: false }} />
-          <Stack.Screen name="SavedVenues" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-          <Stack.Screen
-            name="VenueDetail"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#3b82f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashTitle: {
+    fontSize: 32,
+    fontFamily: 'Pacifico',
+    color: 'white',
+    marginBottom: 8,
+    marginTop: 20,
+  },
+  splashSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Outfitmedium',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+});

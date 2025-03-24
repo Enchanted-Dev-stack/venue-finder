@@ -1,11 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/contexts/auth';
+
+// Define bottom padding based on platform
+const BOTTOM_PADDING = Platform.OS === 'ios' ? 88 : 60;
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { signOut, user } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      // Don't navigate - the root layout will handle that automatically
+      // when the auth state changes
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -24,8 +39,8 @@ export default function ProfileScreen() {
             source={{ uri: 'https://i.pravatar.cc/300?img=32' }}
             style={styles.profileImage}
           />
-          <Text style={styles.userName}>Jessica Thompson</Text>
-          <Text style={styles.userLocation}>New York, NY</Text>
+          <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
+          <Text style={styles.userLocation}>{user?.email || 'Please sign in'}</Text>
           
           <TouchableOpacity 
             style={styles.editProfileButton}
@@ -103,7 +118,10 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity 
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
           <Ionicons name="log-out-outline" size={20} color="#ef4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

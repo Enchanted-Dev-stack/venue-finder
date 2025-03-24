@@ -91,7 +91,7 @@ const mockSavedVenues: SavedVenue[] = [
 ];
 
 // Venue type icons mapping
-const venueTypeIcons: Record<string, { name: string; color: string }> = {
+const venueTypeIcons: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
   cafe: { name: "cafe-outline", color: '#FF8C00' },
   gaming_zone: { name: "game-controller-outline", color: '#FF0000' },
   openspace: { name: "leaf-outline", color: '#228B22' },

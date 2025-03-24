@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
@@ -7,17 +7,15 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
         tabBarActiveTintColor: '#3b82f6',
         tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
-          height: 60,
+          // height: 6/0,
           backgroundColor: 'white',
           borderTopWidth: 1,
           borderTopColor: '#F3F4F6',
-          paddingBottom: 8,
-          paddingTop: 5,
-          position: 'absolute',
+          paddingVertical: 5,
         },
       }}>
       <Tabs.Screen

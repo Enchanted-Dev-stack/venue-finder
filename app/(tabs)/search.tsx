@@ -14,7 +14,10 @@ export default function SearchScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <MobileHeader title="Find a Venue" />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.categoriesSection}>
           <Text style={styles.sectionTitle}>Categories</Text>
           <CategoryFilter />
