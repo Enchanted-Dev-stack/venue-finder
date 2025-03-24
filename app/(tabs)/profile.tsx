@@ -2,8 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -24,7 +27,10 @@ export default function ProfileScreen() {
           <Text style={styles.userName}>Jessica Thompson</Text>
           <Text style={styles.userLocation}>New York, NY</Text>
           
-          <TouchableOpacity style={styles.editProfileButton}>
+          <TouchableOpacity 
+            style={styles.editProfileButton}
+            onPress={() => router.push('/EditProfile')}
+          >
             <Text style={styles.editProfileText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
@@ -49,7 +55,10 @@ export default function ProfileScreen() {
 
         {/* Menu Items */}
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/SavedVenues')}
+          >
             <View style={styles.menuIconContainer}>
               <Ionicons name="bookmark-outline" size={22} color="#3b82f6" />
             </View>
@@ -57,7 +66,10 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/MyReviews')}
+          >
             <View style={styles.menuIconContainer}>
               <Ionicons name="star-outline" size={22} color="#3b82f6" />
             </View>

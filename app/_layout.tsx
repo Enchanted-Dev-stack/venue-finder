@@ -80,6 +80,9 @@ export default function RootLayout() {
       <ThemeProvider value={DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
+          <Stack.Screen name="MyReviews" options={{ headerShown: false }} />
+          <Stack.Screen name="SavedVenues" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
           <Stack.Screen
             name="VenueDetail"
