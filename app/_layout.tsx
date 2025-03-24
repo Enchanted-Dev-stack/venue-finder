@@ -7,7 +7,7 @@ import { useFonts } from "expo-font";
 import { Slot, Stack, useSegments, useRouter, Redirect } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { View, Text, StyleSheet, Animated } from 'react-native';
@@ -26,14 +26,14 @@ function AppSplashScreen({ onFinish }: { onFinish: () => void }) {
     // Start fade-in animation
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1000,
+      duration: 700,
       useNativeDriver: true,
     }).start();
 
     // Set timeout to finish after 3 seconds
     const timeout = setTimeout(() => {
       onFinish();
-    }, 3000);
+    }, 2000);
 
     return () => clearTimeout(timeout);
   }, []);
@@ -53,43 +53,82 @@ function AppSplashScreen({ onFinish }: { onFinish: () => void }) {
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
   const [showingSplash, setShowingSplash] = useState(true);
+  const [contentReady, setContentReady] = useState(false);
+  const splashFadeAnim = useRef(new Animated.Value(1)).current;
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
   
-  // Handle the splash screen finish
+  // Handle the splash screen finish and animate the transition
   const handleSplashFinish = () => {
-    setShowingSplash(false);
+    // Prepare the content before starting the transition
+    setContentReady(true);
+    
+    // Start the fade out animation for splash screen
+    Animated.timing(splashFadeAnim, {
+      toValue: 0,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+    
+    // Start the fade in animation for content with a small delay
+    Animated.timing(contentFadeAnim, {
+      toValue: 1,
+      duration: 400,
+      delay: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      // Once the animation is complete, we can remove the splash screen completely
+      setShowingSplash(false);
+    });
   };
 
-  if (showingSplash) {
-    return <AppSplashScreen onFinish={handleSplashFinish} />;
-  }
+  // Prepare the content component
+  const renderContent = () => {
+    // After splash, we need to decide which stack to show
+    if (isLoading) {
+      // Still loading auth state, show a blank screen
+      return null;
+    }
 
-  // After splash, we need to decide which stack to show
-  if (isLoading) {
-    // Still loading auth state, show a blank screen
-    return null;
-  }
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider value={DefaultTheme}>
+          <StatusBar style="auto" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            {!user ? (
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            ) : (
+              <>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
+                <Stack.Screen name="MyReviews" options={{ headerShown: false }} />
+                <Stack.Screen name="SavedVenues" options={{ headerShown: false }} />
+                <Stack.Screen name="VenueDetail" options={{ headerShown: false }} />
+              </>
+            )}
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    );
+  };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={DefaultTheme}>
-        <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          {!user ? (
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          ) : (
-            <>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
-              <Stack.Screen name="MyReviews" options={{ headerShown: false }} />
-              <Stack.Screen name="SavedVenues" options={{ headerShown: false }} />
-              <Stack.Screen name="VenueDetail" options={{ headerShown: false }} />
-            </>
-          )}
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <View style={{ flex: 1, backgroundColor: '#3b82f6' }}>
+      {/* Content layer - hidden until splash finishes but pre-rendered */}
+      {contentReady && (
+        <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: contentFadeAnim }}>
+          {renderContent()}
+        </Animated.View>
+      )}
+      
+      {/* Splash layer - on top until faded out */}
+      {showingSplash && (
+        <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: splashFadeAnim }}>
+          <AppSplashScreen onFinish={handleSplashFinish} />
+        </Animated.View>
+      )}
+    </View>
   );
 }
 
