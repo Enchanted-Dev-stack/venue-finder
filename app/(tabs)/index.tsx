@@ -99,7 +99,7 @@ export default function HomeScreen() {
 
           <View style={styles.venueList}>
             {venues.map((venue) => (
-              <VenueCard key={venue.id} {...venue} />
+              <VenueCard key={venue.id} {...venue} variant="default" />
             ))}
           </View>
         </View>

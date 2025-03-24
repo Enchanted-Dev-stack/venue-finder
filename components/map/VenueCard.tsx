@@ -86,33 +86,50 @@ export default function VenueCard({
     )
   }
 
+  // Completely new compact list view
   return (
     <TouchableOpacity 
-      style={styles.card}
+      style={styles.listCard}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Image
-        source={{ uri: [
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4',
-          'https://images.unsplash.com/photo-1554118811-1e0d58224f24',
-          'https://images.unsplash.com/photo-1559925393-8be0ec4767c8',
-          'https://images.unsplash.com/photo-1559305616-3f99cd43e353',
-          'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17',
-          'https://images.unsplash.com/photo-1467003909585-2f8a72700288'
-        ][Math.floor(Math.random() * 6)] + '?w=400&h=300&fit=crop'}}
-        style={styles.image}
-      />
-      
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.name} numberOfLines={1}>{name}</Text>
-            <Text style={styles.description} numberOfLines={1}>{description}</Text>
+      {/* Left side - Image with rating */}
+      <View style={styles.imageWrapper}>
+        <Image
+          source={{ uri: [
+            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4',
+            'https://images.unsplash.com/photo-1554118811-1e0d58224f24',
+            'https://images.unsplash.com/photo-1559925393-8be0ec4767c8',
+            'https://images.unsplash.com/photo-1559305616-3f99cd43e353'
+          ][Math.floor(Math.random() * 4)] + '?w=500&h=500&fit=crop' }}
+          style={styles.listImage}
+        />
+        <View style={styles.listRatingBadge}>
+          <Ionicons name="star" size={14} color="#FFD700" />
+          <Text style={styles.listRatingText}>{rating.toFixed(1)}</Text>
+        </View>
+      </View>
+
+      {/* Right side - Content */}
+      <View style={styles.listContent}>
+        <View style={styles.listHeader}>
+          <Text style={styles.listName}>{name}</Text>
+          <Text style={styles.listDescription} numberOfLines={2}>
+            {description}
+          </Text>
+        </View>
+
+        <View style={styles.listFooter}>
+          <View style={styles.listDetailRow}>
+            <Ionicons name="location-outline" size={14} color="#6b7280" />
+            <Text style={styles.listDetailText}>
+              {type.replace('_', ' ')} · 0.8 mi
+            </Text>
           </View>
-          <View style={styles.ratingContainer}>
-            <Text style={styles.rating}>{rating}</Text>
-            <Text style={styles.distance}>0.8 mi</Text>
+          
+          <View style={styles.listDetailRow}>
+            <Ionicons name="time-outline" size={14} color="#6b7280" />
+            <Text style={styles.listDetailText}>{openHours}</Text>
           </View>
         </View>
       </View>
@@ -121,66 +138,86 @@ export default function VenueCard({
 }
 
 const styles = StyleSheet.create({
-  card: {
+  // Brand new list view styles
+  listCard: {
     flexDirection: 'row',
     backgroundColor: 'white',
-    marginHorizontal: 16,
-    marginBottom: 16,
     borderRadius: 12,
     overflow: 'hidden',
-    height: 80,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    marginBottom: 16,
   },
-  image: {
-    width: 80,
-    height: 80,
+  imageWrapper: {
+    position: 'relative',
+    width: 120,
+    height: 120,
   },
-  content: {
+  listImage: {
+    width: '100%',
+    height: '100%',
+  },
+  listRatingBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  listRatingText: {
+    color: 'white',
+    fontFamily: 'Outfitsemibold',
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  listContent: {
     flex: 1,
     padding: 12,
-    justifyContent: 'center',
-  },
-  header: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
-  titleContainer: {
-    flex: 1,
-    marginRight: 8,
+  listHeader: {
+    marginBottom: 8,
   },
-  name: {
-    fontSize: 16,
+  listName: {
+    fontSize: 18,
     fontFamily: 'Outfitsemibold',
     color: '#1f2937',
     marginBottom: 4,
   },
-  description: {
-    fontSize: 14,
+  listDescription: {
+    fontSize: 13,
     fontFamily: 'Outfitmedium',
     color: '#6b7280',
+    display: 'none',
+    lineHeight: 20,
   },
-  ratingContainer: {
-    alignItems: 'flex-end',
+  listFooter: {
+    marginTop: 'auto',
   },
-  rating: {
-    fontSize: 14,
-    fontFamily: 'Outfitsemibold',
-    color: '#1f2937',
-    marginBottom: 4,
+  listDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
-  distance: {
-    fontSize: 12,
+  listDetailText: {
+    fontSize: 11,
     fontFamily: 'Outfitmedium',
     color: '#6b7280',
+    marginLeft: 6,
   },
+
+  // Keep the existing detailed view styles
   detailedCard: {
     backgroundColor: 'white',
     borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    marginBottom: 16,
   },
   imageContainer: {
     position: 'relative',
@@ -207,6 +244,12 @@ const styles = StyleSheet.create({
   detailedContent: {
     padding: 12,
   },
+  name: {
+    fontSize: 16,
+    fontFamily: 'Outfitsemibold',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
   type: {
     fontSize: 14,
     fontFamily: 'Outfitmedium',
@@ -223,9 +266,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailText: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: 'Outfitmedium',
     color: '#6b7280',
+    marginLeft: 6,
   },
   amenities: {
     flexDirection: 'row',

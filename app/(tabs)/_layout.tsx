@@ -1,44 +1,94 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
-
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { View, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: '#3b82f6',
+        tabBarInactiveTintColor: '#94A3B8',
+        tabBarStyle: {
+          height: 60,
+          backgroundColor: 'white',
+          borderTopWidth: 1,
+          borderTopColor: '#F3F4F6',
+          paddingBottom: 8,
+          paddingTop: 5,
+          position: 'absolute',
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-        }}
-      />
-      <Tabs.Screen
-        name="map"
-        options={{
-          title: 'Map',
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.iconWrapper}>
+              <Ionicons 
+                name="home-outline" 
+                size={22} 
+                color={focused ? '#3b82f6' : '#94A3B8'} 
+              />
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
           title: 'Search',
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.iconWrapper}>
+              <Ionicons 
+                name="search-outline" 
+                size={22} 
+                color={focused ? '#3b82f6' : '#94A3B8'} 
+              />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="map"
+        options={{
+          title: 'Map',
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.iconWrapper}>
+              <Ionicons 
+                name="map-outline" 
+                size={22} 
+                color={focused ? '#3b82f6' : '#94A3B8'} 
+              />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.iconWrapper}>
+              <Ionicons 
+                name="person-outline" 
+                size={22} 
+                color={focused ? '#3b82f6' : '#94A3B8'} 
+              />
+            </View>
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+  }
+});
