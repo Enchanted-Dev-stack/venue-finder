@@ -1,25 +1,39 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/contexts/auth';
+import { useAuth } from '@/contexts/AuthContext';
+import * as Haptics from 'expo-haptics';
 
 // Define bottom padding based on platform
 const BOTTOM_PADDING = Platform.OS === 'ios' ? 88 : 60;
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { signOut, user } = useAuth();
+  const { logout, user  } = useAuth();
 
   const handleLogout = async () => {
-    try {
-      await signOut();
-      // Don't navigate - the root layout will handle that automatically
-      // when the auth state changes
-    } catch (error) {
-      console.error('Failed to log out', error);
-    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+            router.replace('/(auth)/login');
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -36,11 +50,11 @@ export default function ProfileScreen() {
         {/* Profile Info */}
         <View style={styles.profileSection}>
           <Image 
-            source={{ uri: 'https://i.pravatar.cc/300?img=32' }}
+            source={{ uri: user?.profileImage || 'https://i.pravatar.cc/300?img=32' }}
             style={styles.profileImage}
           />
-          <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
-          <Text style={styles.userLocation}>{user?.email || 'Please sign in'}</Text>
+          <Text style={styles.userName}>{user?.fullName || "User"}</Text>
+          <Text style={styles.userLocation}>{user?.email || "Email"}</Text>
           
           <TouchableOpacity 
             style={styles.editProfileButton}

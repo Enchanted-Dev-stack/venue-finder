@@ -4,133 +4,18 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Slot, Stack, useSegments, useRouter, Redirect } from "expo-router";
+import { Stack, SplashScreen as ExpoRouterSplashScreen } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { View, Text, StyleSheet, Animated } from 'react-native';
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { AuthProvider, useAuth } from "@/contexts/auth";
-import LogoSVG from "@/components/LogoSVG";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
-function AppSplashScreen({ onFinish }: { onFinish: () => void }) {
-  const fadeAnim = useState(new Animated.Value(0))[0];
-
-  useEffect(() => {
-    // Start fade-in animation
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 700,
-      useNativeDriver: true,
-    }).start();
-
-    // Set timeout to finish after 3 seconds
-    const timeout = setTimeout(() => {
-      onFinish();
-    }, 2000);
-
-    return () => clearTimeout(timeout);
-  }, []);
-
-  return (
-    <View style={styles.splashContainer}>
-      <StatusBar style="light" />
-      <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
-        <LogoSVG width={120} height={120} color="#FFFFFF" />
-        <Text style={styles.splashTitle}>Venue Finder</Text>
-        <Text style={styles.splashSubtitle}>Discover amazing places</Text>
-      </Animated.View>
-    </View>
-  );
-}
-
-function RootLayoutNav() {
-  const { user, isLoading } = useAuth();
-  const [showingSplash, setShowingSplash] = useState(true);
-  const [contentReady, setContentReady] = useState(false);
-  const splashFadeAnim = useRef(new Animated.Value(1)).current;
-  const contentFadeAnim = useRef(new Animated.Value(0)).current;
-  
-  // Handle the splash screen finish and animate the transition
-  const handleSplashFinish = () => {
-    // Prepare the content before starting the transition
-    setContentReady(true);
-    
-    // Start the fade out animation for splash screen
-    Animated.timing(splashFadeAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start();
-    
-    // Start the fade in animation for content with a small delay
-    Animated.timing(contentFadeAnim, {
-      toValue: 1,
-      duration: 400,
-      delay: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      // Once the animation is complete, we can remove the splash screen completely
-      setShowingSplash(false);
-    });
-  };
-
-  // Prepare the content component
-  const renderContent = () => {
-    // After splash, we need to decide which stack to show
-    if (isLoading) {
-      // Still loading auth state, show a blank screen
-      return null;
-    }
-
-    return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider value={DefaultTheme}>
-          <StatusBar style="auto" />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            {!user ? (
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            ) : (
-              <>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
-                <Stack.Screen name="MyReviews" options={{ headerShown: false }} />
-                <Stack.Screen name="SavedVenues" options={{ headerShown: false }} />
-                <Stack.Screen name="VenueDetail" options={{ headerShown: false }} />
-              </>
-            )}
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </ThemeProvider>
-      </GestureHandlerRootView>
-    );
-  };
-
-  return (
-    <View style={{ flex: 1, backgroundColor: '#3b82f6' }}>
-      {/* Content layer - hidden until splash finishes but pre-rendered */}
-      {contentReady && (
-        <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: contentFadeAnim }}>
-          {renderContent()}
-        </Animated.View>
-      )}
-      
-      {/* Splash layer - on top until faded out */}
-      {showingSplash && (
-        <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: splashFadeAnim }}>
-          <AppSplashScreen onFinish={handleSplashFinish} />
-        </Animated.View>
-      )}
-    </View>
-  );
-}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -184,37 +69,39 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      // Hide the expo router splash screen only after fonts are loaded
+      ExpoRouterSplashScreen.hideAsync();
     }
   }, [loaded]);
 
   if (!loaded) {
-    return <Slot />;
+    return null;
   }
 
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider value={DefaultTheme}>
+          <Stack 
+            initialRouteName="splash"
+            screenOptions={{
+              headerShown: false,
+              animation: 'fade',
+            }}
+          >
+            <Stack.Screen name="splash" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="index" />
+            <Stack.Screen name="EditProfile" />
+            <Stack.Screen name="MyReviews" />
+            <Stack.Screen name="SavedVenues" />
+            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="VenueDetail" />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </GestureHandlerRootView>
     </AuthProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  splashContainer: {
-    flex: 1,
-    backgroundColor: '#3b82f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  splashTitle: {
-    fontSize: 32,
-    fontFamily: 'Pacifico',
-    color: 'white',
-    marginBottom: 8,
-    marginTop: 20,
-  },
-  splashSubtitle: {
-    fontSize: 16,
-    fontFamily: 'Outfitmedium',
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-});
