@@ -14,17 +14,44 @@ cloudinary.config({
  * @returns {Promise} - Cloudinary upload result
  */
 const uploadToCloudinary = async (file, options = {}) => {
-  try {
-    // Set default options
-    const uploadOptions = {
-      folder: options.folder || 'venue-finder',
-      resource_type: options.resource_type || 'auto',
-      ...options
-    };
+  const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'venue_uploads';
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  
+  if (!cloudName) {
+    throw new Error('Cloudinary cloud name is not configured');
+  }
 
-    // Upload the file
-    const result = await cloudinary.uploader.upload(file, uploadOptions);
-    return result;
+  // Create form data for upload
+  const formData = new FormData();
+  formData.append('upload_preset', preset);
+  
+  // Handle both File objects and base64 strings
+  if (typeof file === 'string' && file.startsWith('data:')) {
+    formData.append('file', file);
+  } else if (file instanceof File) {
+    formData.append('file', file);
+  } else {
+    throw new Error('Invalid file format');
+  }
+
+  // Add any additional options
+  Object.keys(options).forEach(key => {
+    formData.append(key, options[key]);
+  });
+
+  try {
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
   } catch (error) {
     console.error('Error uploading to Cloudinary:', error);
     throw error;

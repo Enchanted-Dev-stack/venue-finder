@@ -13,7 +13,8 @@ const {
   uploadVenuePhoto,
   uploadPromoVideo,
   upload360Tour,
-  submitVenueForm
+  submitVenueForm,
+  checkVenueOwnership
 } = require('../controllers/venues');
 
 // Include review router
@@ -71,5 +72,10 @@ router
 router
   .route('/:id/tour360')
   .put(protect, upload360Tour);
+
+// Route to check venue ownership
+router
+  .route('/:id/check-ownership')
+  .get(protect, checkVenueOwnership);
 
 module.exports = router; 

@@ -143,16 +143,18 @@ exports.updateVenue = async (req, res, next) => {
     let venue = await Venue.findById(req.params.id);
 
     if (!venue) {
-      return next(
-        new ErrorResponse(`Venue not found with id of ${req.params.id}`, 404)
-      );
+      return res.status(404).json({
+        success: false,
+        message: 'Venue not found'
+      });
     }
 
     // Make sure user is venue owner or admin
     if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return next(
-        new ErrorResponse(`User ${req.user.id} is not authorized to update this venue`, 401)
-      );
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this venue'
+      });
     }
 
     venue = await Venue.findByIdAndUpdate(req.params.id, req.body, {
@@ -177,19 +179,20 @@ exports.deleteVenue = async (req, res, next) => {
     const venue = await Venue.findById(req.params.id);
 
     if (!venue) {
-      return next(
-        new ErrorResponse(`Venue not found with id of ${req.params.id}`, 404)
-      );
+      return res.status(404).json({
+        success: false,
+        message: 'Venue not found'
+      });
     }
 
     // Make sure user is venue owner or admin
     if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return next(
-        new ErrorResponse(`User ${req.user.id} is not authorized to delete this venue`, 401)
-      );
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this venue'
+      });
     }
 
-    // Remove venue
     await venue.remove();
 
     res.status(200).json({
@@ -240,16 +243,18 @@ exports.uploadVenuePhoto = async (req, res, next) => {
     const venue = await Venue.findById(req.params.id);
 
     if (!venue) {
-      return next(
-        new ErrorResponse(`Venue not found with id of ${req.params.id}`, 404)
-      );
+      return res.status(404).json({
+        success: false,
+        message: 'Venue not found'
+      });
     }
 
     // Make sure user is venue owner or admin
     if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return next(
-        new ErrorResponse(`User ${req.user.id} is not authorized to update this venue's photos`, 401)
-      );
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this venue'
+      });
     }
 
     if (!req.files) {
@@ -486,6 +491,34 @@ exports.submitVenueForm = async (req, res, next) => {
     });
   } catch (err) {
     console.error('Error submitting venue form:', err);
+    next(err);
+  }
+};
+
+// @desc    Check if user owns a venue
+// @route   GET /api/venues/:id/check-ownership
+// @access  Private
+exports.checkVenueOwnership = async (req, res, next) => {
+  try {
+    const venue = await Venue.findById(req.params.id);
+
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: 'Venue not found'
+      });
+    }
+
+    // Check if logged in user is the owner or an admin
+    const isOwner = 
+      venue.owner.toString() === req.user.id || 
+      req.user.role === 'admin';
+
+    res.status(200).json({
+      success: true,
+      isOwner
+    });
+  } catch (err) {
     next(err);
   }
 }; 
