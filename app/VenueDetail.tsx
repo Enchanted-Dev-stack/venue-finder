@@ -1,142 +1,133 @@
 "use client"
 
-import { useState } from "react"
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions } from "react-native"
+import { useState, useEffect } from "react"
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Alert } from "react-native"
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { Ionicons } from "@expo/vector-icons"
-import MapView from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs"
 import { StatusBar } from 'expo-status-bar'
 
 import VenueCard from "@/components/VenueCard"
 
-// type VenueDetailScreenRouteProp = RouteProp<RootStackParamList, "VenueDetail">
-
-// Mock data for venue details with realistic images
-const venueDetails = {
-  id: "1",
-  name: "The Cozy Corner",
-  description:
-    "A relaxing cafe with artisanal coffee and homemade pastries. Our mission is to provide a comfortable space for people to work, socialize, or simply enjoy a great cup of coffee. We source our beans from local roasters and our pastries are made fresh daily.",
-  images: [
-    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=2070&auto=format&fit=crop",
-  ],
-  rating: 4.7,
-  reviewCount: 128,
-  location: "123 Main St, Downtown",
-  phone: "(555) 123-4567",
-  website: "www.cozycorner.com",
-  hours: [
-    { day: "Monday - Friday", hours: "7:00 AM - 10:00 PM" },
-    { day: "Saturday - Sunday", hours: "8:00 AM - 11:00 PM" },
-  ],
-  amenities: ["Free WiFi", "Outdoor Seating", "Pet Friendly", "Wheelchair Accessible"],
-  menu: [
-    {
-      category: "Coffee",
-      items: [
-        { name: "Espresso", price: "$3.50", description: "Double shot of our signature espresso blend" },
-        { name: "Cappuccino", price: "$4.50", description: "Espresso with steamed milk and foam" },
-        { name: "Cold Brew", price: "$4.75", description: "Slow-steeped for 24 hours" },
-      ],
-    },
-    {
-      category: "Pastries",
-      items: [
-        { name: "Croissant", price: "$3.75", description: "Buttery, flaky pastry" },
-        { name: "Blueberry Muffin", price: "$3.50", description: "Made with fresh blueberries" },
-        { name: "Cinnamon Roll", price: "$4.25", description: "Freshly baked with cream cheese frosting" },
-      ],
-    },
-  ],
-  reviews: [
-    {
-      id: "r1",
-      user: "Alex Johnson",
-      rating: 5,
-      date: "2 weeks ago",
-      comment: "Absolutely love this place! The coffee is amazing and the staff is super friendly.",
-    },
-    {
-      id: "r2",
-      user: "Sam Smith",
-      rating: 4,
-      date: "1 month ago",
-      comment: "Great atmosphere for working. The WiFi is reliable and the pastries are delicious.",
-    },
-    {
-      id: "r3",
-      user: "Jamie Lee",
-      rating: 5,
-      date: "2 months ago",
-      comment: "My favorite cafe in town. I come here at least twice a week.",
-    },
-  ],
+// Define the venue interface based on the API response
+interface Venue {
+  _id: string;
+  name: string;
+  description: string;
+  address: string;
+  category: string;
+  capacity: number;
+  phone: string;
+  email: string;
+  website: string;
+  location: {
+    coordinates: number[];
+    city: string;
+    zipcode: string;
+    type: string;
+  };
+  media: {
+    images: string[];
+    hasPromoVideo: boolean;
+    promoVideoUrl: string;
+    has360Tour: boolean;
+    tour360Url: string;
+  };
+  amenities: string[];
+  eventTypes: string[];
+  cateringOptions: string;
+  pricing: string;
+  pricingMenu: any[];
+  packages: any[];
+  socialLinks: {
+    facebook: string;
+    instagram: string;
+    twitter: string;
+    linkedin: string;
+    youtube: string;
+  };
+  operatingHours: {
+    monday: { open: string; close: string; isClosed: boolean };
+    tuesday: { open: string; close: string; isClosed: boolean };
+    wednesday: { open: string; close: string; isClosed: boolean };
+    thursday: { open: string; close: string; isClosed: boolean };
+    friday: { open: string; close: string; isClosed: boolean };
+    saturday: { open: string; close: string; isClosed: boolean };
+    sunday: { open: string; close: string; isClosed: boolean };
+  };
+  reviewCount: number;
+  averageRating: number;
+  isVerified: boolean;
+  acceptingBookings: boolean;
 }
 
-// Mock data for similar venues
-const similarVenues = [
-  {
-    id: "2",
-    name: "Brew & Bake",
-    description: "Artisan bakery and coffee shop with a cozy atmosphere",
-    image: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=2070&auto=format&fit=crop",
-    rating: 4.5,
-    location: "456 Baker St, Downtown",
-    openingHours: "Open until 9PM",
-  },
-  {
-    id: "3",
-    name: "Morning Bliss",
-    description: "Specialty coffee and breakfast items in a bright, airy space",
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2070&auto=format&fit=crop",
-    rating: 4.6,
-    location: "789 Sunrise Ave, Eastside",
-    openingHours: "Open until 3PM",
-  },
-]
+// Define route param type
+type VenueDetailRouteParams = {
+  id: string;
+};
 
 const Tab = createMaterialTopTabNavigator()
 
-function AboutTab() {
+function AboutTab({ venue }: { venue: Venue }) {
+  // Format operating hours for display
+  const formattedHours = [
+    { 
+      day: "Monday", 
+      hours: venue.operatingHours?.monday?.isClosed 
+        ? "Closed" 
+        : `${venue.operatingHours?.monday?.open || 'N/A'} - ${venue.operatingHours?.monday?.close || 'N/A'}`
+    },
+    { 
+      day: "Tuesday", 
+      hours: venue.operatingHours?.tuesday?.isClosed 
+        ? "Closed" 
+        : `${venue.operatingHours?.tuesday?.open || 'N/A'} - ${venue.operatingHours?.tuesday?.close || 'N/A'}`
+    },
+    { 
+      day: "Wednesday", 
+      hours: venue.operatingHours?.wednesday?.isClosed 
+        ? "Closed" 
+        : `${venue.operatingHours?.wednesday?.open || 'N/A'} - ${venue.operatingHours?.wednesday?.close || 'N/A'}`
+    },
+    { 
+      day: "Thursday", 
+      hours: venue.operatingHours?.thursday?.isClosed 
+        ? "Closed" 
+        : `${venue.operatingHours?.thursday?.open || 'N/A'} - ${venue.operatingHours?.thursday?.close || 'N/A'}`
+    },
+    { 
+      day: "Friday", 
+      hours: venue.operatingHours?.friday?.isClosed 
+        ? "Closed" 
+        : `${venue.operatingHours?.friday?.open || 'N/A'} - ${venue.operatingHours?.friday?.close || 'N/A'}`
+    },
+    { 
+      day: "Saturday", 
+      hours: venue.operatingHours?.saturday?.isClosed 
+        ? "Closed" 
+        : `${venue.operatingHours?.saturday?.open || 'N/A'} - ${venue.operatingHours?.saturday?.close || 'N/A'}`
+    },
+    { 
+      day: "Sunday", 
+      hours: venue.operatingHours?.sunday?.isClosed 
+        ? "Closed" 
+        : `${venue.operatingHours?.sunday?.open || 'N/A'} - ${venue.operatingHours?.sunday?.close || 'N/A'}`
+    },
+  ];
+
   return (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.description}>{venueDetails.description}</Text>
+        <Text style={styles.description}>{venue.description}</Text>
       </View>
 
-{/* #Contact Information */}
-      {/* <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Contact Information</Text>
-        <View style={styles.contactItem}>
-          <View style={styles.contactIconContainer}>
-            <Ionicons name="location" size={20} color="#3b82f6" />
-          </View>
-          <Text style={styles.contactText}>{venueDetails.location}</Text>
-        </View>
-        <View style={styles.contactItem}>
-          <View style={styles.contactIconContainer}>
-            <Ionicons name="call" size={20} color="#3b82f6" />
-          </View>
-          <Text style={styles.contactText}>{venueDetails.phone}</Text>
-        </View>
-        <View style={styles.contactItem}>
-          <View style={styles.contactIconContainer}>
-            <Ionicons name="globe" size={20} color="#3b82f6" />
-          </View>
-          <Text style={styles.contactText}>{venueDetails.website}</Text>
-        </View>
-      </View> */}
-
       <View style={styles.section}>
-        {/* <Text style={styles.sectionTitle}>Hours</Text> */}
+        <Text style={styles.sectionTitle}>Operating Hours</Text>
         <View style={styles.hoursContainer}>
-          {venueDetails.hours.map((item, index) => (
+          {formattedHours.map((item, index) => (
             <View key={index} style={styles.hoursItem}>
               <Text style={styles.hoursDay}>{item.day}</Text>
               <Text style={styles.hoursTime}>{item.hours}</Text>
@@ -145,17 +136,19 @@ function AboutTab() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Amenities</Text>
-        <View style={styles.amenitiesContainer}>
-          {venueDetails.amenities.map((amenity, index) => (
-            <View key={index} style={styles.amenityItem}>
-              <Ionicons name="checkmark" size={16} color="#3b82f6" />
-              <Text style={styles.amenityText}>{amenity}</Text>
-            </View>
-          ))}
+      {venue.amenities && venue.amenities.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Amenities</Text>
+          <View style={styles.amenitiesContainer}>
+            {venue.amenities.map((amenity, index) => (
+              <View key={index} style={styles.amenityItem}>
+                <Ionicons name="checkmark" size={16} color="#3b82f6" />
+                <Text style={styles.amenityText}>{amenity}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Location</Text>
@@ -164,56 +157,104 @@ function AboutTab() {
           style={styles.map}
           provider="google"
           initialRegion={{
-            latitude: 37.7749,
-            longitude: -122.4194,
+            latitude: venue.location?.coordinates?.[1] || 37.7749,
+            longitude: venue.location?.coordinates?.[0] || -122.4194,
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
           }}
-        />
+        >
+          <Marker
+            coordinate={{
+              latitude: venue.location?.coordinates?.[1] || 37.7749,
+              longitude: venue.location?.coordinates?.[0] || -122.4194,
+            }}
+            title={venue.name}
+          />
+        </MapView>
         </View>
       </View>
     </ScrollView>
   )
 }
 
-function MenuTab() {
+function MenuTab({ venue }: { venue: Venue }) {
+  // Group menu items by category
+  const menuCategories = venue.pricingMenu ? Object.values(venue.pricingMenu.reduce((acc, item) => {
+    const category = item.category || 'Other';
+    if (!acc[category]) {
+      acc[category] = { category, items: [] };
+    }
+    acc[category].items.push(item);
+    return acc;
+  }, {})) : [];
+
   return (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      {venueDetails.menu.map((category, index) => (
-        <View key={index} style={styles.menuCategory}>
-          <Text style={styles.menuCategoryTitle}>{category.category}</Text>
-          {category.items.map((item, itemIndex) => (
-            <View key={itemIndex} style={styles.menuItem}>
-              <View style={styles.menuItemContent}>
-                <Text style={styles.menuItemName}>{item.name}</Text>
-                <Text style={styles.menuItemDescription}>{item.description}</Text>
+      {menuCategories.length > 0 ? (
+        menuCategories.map((category: any, index) => (
+          <View key={index} style={styles.menuCategory}>
+            <Text style={styles.menuCategoryTitle}>{category.category}</Text>
+            {category.items.map((item: any, itemIndex: number) => (
+              <View key={itemIndex} style={styles.menuItem}>
+                <View style={styles.menuItemContent}>
+                  <Text style={styles.menuItemName}>{item.name}</Text>
+                  <Text style={styles.menuItemDescription}>{item.description}</Text>
+                </View>
+                <Text style={styles.menuItemPrice}>${item.price.toFixed(2)}</Text>
               </View>
-              <Text style={styles.menuItemPrice}>{item.price}</Text>
-            </View>
-          ))}
+            ))}
+          </View>
+        ))
+      ) : (
+        <View style={styles.emptyState}>
+          <Ionicons name="restaurant-outline" size={48} color="#d1d5db" />
+          <Text style={styles.emptyStateText}>No menu items available</Text>
         </View>
-      ))}
+      )}
     </ScrollView>
   )
 }
 
-function ReviewsTab() {
+function ReviewsTab({ venue }: { venue: Venue }) {
+  // In production, you would fetch reviews from an API
+  // For now, we'll create a placeholder if there are no reviews
+  const mockReviews = [
+    {
+      id: "r1",
+      user: "Alex Johnson",
+      rating: 5,
+      date: "2 weeks ago",
+      comment: "Absolutely love this place! The atmosphere is amazing and the staff is super friendly.",
+    },
+    {
+      id: "r2",
+      user: "Sam Smith",
+      rating: 4,
+      date: "1 month ago",
+      comment: "Great for events. The venue was perfect for our company gathering.",
+    },
+  ];
+
+  const reviews = mockReviews; // Replace with actual reviews when available
+  const rating = venue.averageRating || 4.5;
+  const reviewCount = venue.reviewCount || reviews.length;
+
   return (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
       <View style={styles.reviewSummary}>
         <View style={styles.reviewRating}>
-          <Text style={styles.reviewRatingNumber}>{venueDetails.rating}</Text>
+          <Text style={styles.reviewRatingNumber}>{rating.toFixed(1)}</Text>
           <View style={styles.reviewStars}>
             {[1, 2, 3, 4, 5].map((star) => (
               <Ionicons
                 key={star}
                 name="star"
                 size={16}
-                color={star <= Math.floor(venueDetails.rating) ? "#FFCA28" : "#e5e7eb"}
+                color={star <= Math.floor(rating) ? "#FFCA28" : "#e5e7eb"}
               />
             ))}
           </View>
-          <Text style={styles.reviewCount}>{venueDetails.reviewCount} reviews</Text>
+          <Text style={styles.reviewCount}>{reviewCount} reviews</Text>
         </View>
         <TouchableOpacity style={styles.writeReviewButton}>
           <Text style={styles.writeReviewButtonText}>Write a Review</Text>
@@ -221,42 +262,117 @@ function ReviewsTab() {
       </View>
 
       <View style={styles.reviewsList}>
-        {venueDetails.reviews.map((review) => (
-          <View key={review.id} style={styles.reviewItem}>
-            <View style={styles.reviewHeader}>
-              <Text style={styles.reviewUser}>{review.user}</Text>
-              <Text style={styles.reviewDate}>{review.date}</Text>
+        {reviews.length > 0 ? (
+          reviews.map((review) => (
+            <View key={review.id} style={styles.reviewItem}>
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewUser}>{review.user}</Text>
+                <Text style={styles.reviewDate}>{review.date}</Text>
+              </View>
+              <View style={styles.reviewStars}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Ionicons key={star} name="star" size={14} color={star <= review.rating ? "#FFCA28" : "#e5e7eb"} />
+                ))}
+              </View>
+              <Text style={styles.reviewComment}>{review.comment}</Text>
             </View>
-            <View style={styles.reviewStars}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Ionicons key={star} name="star" size={14} color={star <= review.rating ? "#FFCA28" : "#e5e7eb"} />
-              ))}
-            </View>
-            <Text style={styles.reviewComment}>{review.comment}</Text>
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="chatbubble-outline" size={48} color="#d1d5db" />
+            <Text style={styles.emptyStateText}>No reviews yet</Text>
           </View>
-        ))}
+        )}
       </View>
     </ScrollView>
   )
 }
 
-function PhotosTab() {
+function PhotosTab({ venue }: { venue: Venue }) {
+  const images = venue.media?.images || [];
+  
   return (
     <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      <View style={styles.photosGrid}>
-        {venueDetails.images.map((image, index) => (
-          <Image key={index} source={{ uri: image }} style={styles.photoItem} />
-        ))}
-      </View>
+      {images.length > 0 ? (
+        <View style={styles.photosGrid}>
+          {images.map((image, index) => (
+            <Image key={index} source={{ uri: image }} style={styles.photoItem} />
+          ))}
+        </View>
+      ) : (
+        <View style={styles.emptyState}>
+          <Ionicons name="images-outline" size={48} color="#d1d5db" />
+          <Text style={styles.emptyStateText}>No photos available</Text>
+        </View>
+      )}
     </ScrollView>
   )
 }
 
 export default function VenueDetailScreen() {
-  const navigation = useNavigation()
-  const route = useRoute()
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const navigation = useNavigation();
+  const route = useRoute<RouteProp<Record<string, VenueDetailRouteParams>, string>>();
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { id } = route.params;
+  
+  useEffect(() => {
+    const fetchVenueDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/venues/${id}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setVenue(data.data);
+      } catch (err) {
+        console.error("Error fetching venue details:", err);
+        setError("Failed to load venue details. Please try again later.");
+        Alert.alert("Error", "Failed to load venue details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchVenueDetails();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
+
+  if (error || !venue) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+        <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+        <Text style={{ fontSize: 18, fontWeight: 'bold', marginVertical: 10 }}>
+          Something went wrong
+        </Text>
+        <Text style={{ fontSize: 16, textAlign: 'center', marginBottom: 20 }}>
+          {error || "Venue not found"}
+        </Text>
+        <TouchableOpacity 
+          style={styles.primaryButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.primaryButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -277,34 +393,44 @@ export default function VenueDetailScreen() {
 
       <View style={styles.scrollView}>
         <View style={styles.heroSection}>
-          <Image source={{ uri: venueDetails.images[activeImageIndex] }} style={styles.heroImage} />
+          <Image 
+            source={{ 
+              uri: venue.media.images?.[activeImageIndex] || 
+                  "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop" 
+            }} 
+            style={styles.heroImage} 
+          />
           <View style={styles.heroOverlay} />
           <View style={styles.heroContent}>
-            <Text style={styles.venueName}>{venueDetails.name}</Text>
+            <Text style={styles.venueName}>{venue.name}</Text>
             <View style={styles.venueInfo}>
               <View style={styles.ratingContainer}>
                 <Ionicons name="star" size={16} color="#FFCA28" />
-                <Text style={styles.ratingText}>{venueDetails.rating}</Text>
-                <Text style={styles.reviewCountText}>({venueDetails.reviewCount} reviews)</Text>
+                <Text style={styles.ratingText}>{venue.averageRating || 4.5}</Text>
+                <Text style={styles.reviewCountText}>({venue.reviewCount || 0} reviews)</Text>
               </View>
               <Text style={styles.locationDot}>•</Text>
               <View style={styles.locationContainer}>
                 <Ionicons name="location" size={16} color="#fff" />
-                <Text style={styles.locationText}>{venueDetails.location}</Text>
+                <Text style={styles.locationText}>{venue.address}</Text>
               </View>
             </View>
           </View>
         </View>
 
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.primaryButton}>
-            <Ionicons name="call" size={20} color="#fff" />
-            <Text style={styles.primaryButtonText}>Call</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryButton}>
-            <Ionicons name="calendar" size={20} color="#fff" />
-            <Text style={styles.primaryButtonText}>Reserve</Text>
-          </TouchableOpacity>
+          {venue.phone && (
+            <TouchableOpacity style={styles.primaryButton}>
+              <Ionicons name="call" size={20} color="#fff" />
+              <Text style={styles.primaryButtonText}>Call</Text>
+            </TouchableOpacity>
+          )}
+          {venue.acceptingBookings && (
+            <TouchableOpacity style={styles.primaryButton}>
+              <Ionicons name="calendar" size={20} color="#fff" />
+              <Text style={styles.primaryButtonText}>Reserve</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.secondaryButton}>
             <Ionicons name="navigate" size={20} color="#3b82f6" />
             <Text style={styles.secondaryButtonText}>Directions</Text>
@@ -321,21 +447,12 @@ export default function VenueDetailScreen() {
             tabBarLabelStyle: { fontSize: 14, fontWeight: "500", textTransform: "none", color: "#fff", fontFamily: "Handjet" },
           }}
         >
-          <Tab.Screen name="About" component={AboutTab} />
-          <Tab.Screen name="Menu" component={MenuTab} />
-          <Tab.Screen name="Reviews" component={ReviewsTab} />
-          <Tab.Screen name="Photos" component={PhotosTab} />
+          <Tab.Screen name="About" children={() => <AboutTab venue={venue} />} />
+          <Tab.Screen name="Menu" children={() => <MenuTab venue={venue} />} />
+          <Tab.Screen name="Reviews" children={() => <ReviewsTab venue={venue} />} />
+          <Tab.Screen name="Photos" children={() => <PhotosTab venue={venue} />} />
         </Tab.Navigator>
         </View>
-
-        {/* <View style={styles.similarVenuesSection}>
-          <Text style={styles.similarVenuesTitle}>Similar Venues</Text>
-          <View style={styles.similarVenuesList}>
-            {similarVenues.map((venue) => (
-              <VenueCard key={venue.id} {...venue} />
-            ))}
-          </View>
-        </View> */}
       </View>
     </View>
   )
@@ -454,7 +571,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#3b82f6",
     borderRadius: 1000,
-    paddingVertical: 4,
+    paddingVertical: 8,
     marginHorizontal: 4,
   },
   primaryButtonText: {
@@ -471,7 +588,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
     borderRadius: 1000,
-    paddingVertical: 12,
+    paddingVertical: 8,
     marginHorizontal: 4,
   },
   secondaryButtonText: {
@@ -521,7 +638,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    //shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -676,16 +792,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 8,
   },
-  similarVenuesSection: {
-    padding: 16,
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
   },
-  similarVenuesTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  similarVenuesList: {
-    gap: 16,
+  emptyStateText: {
+    marginTop: 10,
+    color: '#6b7280',
+    fontSize: 16,
+    textAlign: 'center',
   },
 })
 

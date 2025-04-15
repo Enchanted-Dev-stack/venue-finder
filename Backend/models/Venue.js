@@ -50,32 +50,128 @@ const VenueSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  capacity: {
+    type: Number,
+    min: [1, 'Capacity must be at least 1']
+  },
+  socialLinks: {
+    facebook: {
+      type: String,
+      trim: true
+    },
+    instagram: {
+      type: String,
+      trim: true
+    },
+    twitter: {
+      type: String,
+      trim: true
+    },
+    linkedin: {
+      type: String,
+      trim: true
+    },
+    youtube: {
+      type: String,
+      trim: true
+    }
+  },
   category: {
     type: String,
     required: [true, 'Please select a category'],
     enum: [
-      'Restaurant',
-      'Café',
-      'Bar',
-      'Pub',
-      'Club',
-      'Event Space',
-      'Hotel',
-      'Concert Hall',
-      'Theater',
-      'Sports Venue',
-      'Conference Center',
-      'Other'
+      'restaurant',
+      'cafe',
+      'bar',
+      'pub',
+      'club',
+      'event_space',
+      'hotel',
+      'concert_hall',
+      'theater',
+      'sports_venue',
+      'conference_center',
+      'banquet_hall',
+      'other'
     ]
   },
   amenities: {
     type: [String],
     default: []
   },
+  eventTypes: {
+    type: [String],
+    enum: [
+      'wedding',
+      'corporate',
+      'birthday',
+      'conference',
+      'exhibition',
+      'party',
+      'meeting',
+      'workshop',
+      'seminar',
+      'celebration',
+      'other'
+    ],
+    default: []
+  },
+  cateringOptions: {
+    type: String,
+    enum: ['in_house', 'preferred_vendors', 'external'],
+    default: 'in_house'
+  },
   pricing: {
     type: String,
     enum: ['$', '$$', '$$$', '$$$$'],
     required: [true, 'Please select a price range']
+  },
+  menus: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Menu'
+  }],
+  pricingMenu: {
+    type: [{
+      name: String,
+      description: String,
+      price: Number,
+      category: String,
+      isPopular: Boolean
+    }],
+    default: [],
+    deprecated: true
+  },
+  packages: {
+    type: [{
+      name: String,
+      description: String,
+      features: [String],
+      price: Number,
+      duration: String,
+      isPopular: Boolean
+    }],
+    default: [],
+    deprecated: true
+  },
+  media: {
+    images: {
+      type: [String],
+      default: ['default-venue.jpg']
+    },
+    hasPromoVideo: {
+      type: Boolean,
+      default: false
+    },
+    promoVideoUrl: {
+      type: String
+    },
+    has360Tour: {
+      type: Boolean,
+      default: false
+    },
+    tour360Url: {
+      type: String
+    }
   },
   operatingHours: {
     monday: {
@@ -135,9 +231,20 @@ const VenueSchema = new mongoose.Schema({
       }
     }
   },
-  photos: {
-    type: [String],
-    default: ['default-venue.jpg']
+  theme: {
+    type: String,
+    enum: ['default', 'modern', 'classic', 'elegant', 'vibrant'],
+    default: 'default'
+  },
+  customFields: [
+    {
+      name: String,
+      value: mongoose.Schema.Types.Mixed
+    }
+  ],
+  acceptingBookings: {
+    type: Boolean,
+    default: true
   },
   averageRating: {
     type: Number,
@@ -151,6 +258,10 @@ const VenueSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   createdAt: {
     type: Date,
@@ -191,9 +302,10 @@ const VenueSchema = new mongoose.Schema({
 //   }
 // });
 
-// Cascade delete reviews when a venue is deleted
+// Cascade delete reviews and menus when a venue is deleted
 VenueSchema.pre('remove', async function(next) {
   await this.model('Review').deleteMany({ venue: this._id });
+  await this.model('Menu').deleteMany({ venue: this._id });
   next();
 });
 
@@ -203,6 +315,15 @@ VenueSchema.virtual('reviews', {
   localField: '_id',
   foreignField: 'venue',
   justOne: false
+});
+
+// Virtual for getting the default menu
+VenueSchema.virtual('defaultMenu', {
+  ref: 'Menu',
+  localField: '_id',
+  foreignField: 'venue',
+  justOne: true,
+  options: { match: { isDefault: true } }
 });
 
 module.exports = mongoose.model('Venue', VenueSchema); 

@@ -10,19 +10,45 @@ const {
   updateVenue,
   deleteVenue,
   getVenuesInRadius,
-  uploadVenuePhoto
+  uploadVenuePhoto,
+  uploadPromoVideo,
+  upload360Tour,
+  submitVenueForm
 } = require('../controllers/venues');
 
 // Include review router
 const reviewRouter = require('./reviews');
+// Include offers router
+const offersRouter = require('./offers');
+// Include menus router
+const menusRouter = require('./menus');
 
 // Re-route into other resource routers
 router.use('/:venueId/reviews', reviewRouter);
+// Re-route venue offers
+router.use('/:venueId/offers', offersRouter);
+// Re-route venue menus
+router.use('/:venueId/menus', menusRouter);
+
+// Middleware to conditionally apply authentication
+const conditionalProtect = (req, res, next) => {
+  // If requesting user's own venues, require authentication
+  if (req.query.owner === 'current') {
+    return protect(req, res, next);
+  }
+  // Otherwise proceed without authentication
+  next();
+};
 
 router
   .route('/')
-  .get(getVenues)
+  .get(conditionalProtect, getVenues)
   .post(protect, createVenue);
+
+// New route for comprehensive venue form submission
+router
+  .route('/submit-form')
+  .post(protect, submitVenueForm);
 
 router
   .route('/:id')
@@ -37,5 +63,13 @@ router
 router
   .route('/:id/photo')
   .put(protect, uploadVenuePhoto);
+
+router
+  .route('/:id/promo-video')
+  .put(protect, uploadPromoVideo);
+
+router
+  .route('/:id/tour360')
+  .put(protect, upload360Tour);
 
 module.exports = router; 
