@@ -35,6 +35,7 @@ app.use('/api/venues', require('./routes/venues'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/profile', require('./routes/profile'));
 app.use('/api/offers', require('./routes/offers'));
+app.use('/api/menus', require('./routes/menus'));
 
 // Basic route
 app.get('/', (req, res) => {

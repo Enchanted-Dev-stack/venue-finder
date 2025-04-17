@@ -22,6 +22,7 @@ exports.protect = async (req, res, next) => {
 
     // Get user from the token
     req.user = await User.findById(decoded.id);
+    console.log('[auth.js] User:', req.user);
 
     if (!req.user) {
       return next(new ErrorResponse('User not found', 401));

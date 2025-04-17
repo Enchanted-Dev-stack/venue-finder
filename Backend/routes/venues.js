@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
+const checkOwnership = require('../middleware/checkOwnership');
 
 // Import controllers
 const {
@@ -13,8 +14,7 @@ const {
   uploadVenuePhoto,
   uploadPromoVideo,
   upload360Tour,
-  submitVenueForm,
-  checkVenueOwnership
+  submitVenueForm
 } = require('../controllers/venues');
 
 // Include review router
@@ -54,8 +54,8 @@ router
 router
   .route('/:id')
   .get(getVenue)
-  .put(protect, updateVenue)
-  .delete(protect, authorize('admin'), deleteVenue);
+  .put(protect, checkOwnership('Venue'), updateVenue)
+  .delete(protect, checkOwnership('Venue'), authorize('admin'), deleteVenue);
 
 router
   .route('/radius/:lat/:lng/:distance')
@@ -63,19 +63,14 @@ router
 
 router
   .route('/:id/photo')
-  .put(protect, uploadVenuePhoto);
+  .put(protect, checkOwnership('Venue'), uploadVenuePhoto);
 
 router
   .route('/:id/promo-video')
-  .put(protect, uploadPromoVideo);
+  .put(protect, checkOwnership('Venue'), uploadPromoVideo);
 
 router
   .route('/:id/tour360')
-  .put(protect, upload360Tour);
-
-// Route to check venue ownership
-router
-  .route('/:id/check-ownership')
-  .get(protect, checkVenueOwnership);
+  .put(protect, checkOwnership('Venue'), upload360Tour);
 
 module.exports = router; 

@@ -3,6 +3,7 @@ const ErrorResponse = require('../utils/errorResponse');
 // const geocoder = require('../utils/geocoder');
 const path = require('path');
 const fs = require('fs');
+const checkOwnership = require('../middleware/checkOwnership');
 
 // @desc    Get all venues
 // @route   GET /api/venues
@@ -98,19 +99,25 @@ exports.getVenues = async (req, res, next) => {
 // @access  Public
 exports.getVenue = async (req, res, next) => {
   try {
+    console.log('[getVenue] Request received for venue:', req.params.id);
+    console.log('[getVenue] User in request:', req.user ? {id: req.user.id, role: req.user.role} : 'No user in request');
+    
     const venue = await Venue.findById(req.params.id).populate('reviews');
 
     if (!venue) {
+      console.log(`[getVenue] Venue not found with id: ${req.params.id}`);
       return next(
         new ErrorResponse(`Venue not found with id of ${req.params.id}`, 404)
       );
     }
 
+    console.log(`[getVenue] Venue found. Owner: ${venue.owner}`);
     res.status(200).json({
       success: true,
       data: venue
     });
   } catch (err) {
+    console.error('[getVenue] Error:', err);
     next(err);
   }
 };
@@ -140,33 +147,32 @@ exports.createVenue = async (req, res, next) => {
 // @access  Private
 exports.updateVenue = async (req, res, next) => {
   try {
+    console.log('[updateVenue] Request received for venue:', req.params.id);
+    console.log('[updateVenue] User in request:', req.user ? {id: req.user.id, role: req.user.role} : 'No user in request');
+    
     let venue = await Venue.findById(req.params.id);
 
     if (!venue) {
-      return res.status(404).json({
-        success: false,
-        message: 'Venue not found'
-      });
+      console.log(`[updateVenue] Venue not found with id: ${req.params.id}`);
+      return next(
+        new ErrorResponse(`Venue not found with id of ${req.params.id}`, 404)
+      );
     }
 
-    // Make sure user is venue owner or admin
-    if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this venue'
-      });
-    }
-
+    console.log(`[updateVenue] Venue found. Owner: ${venue.owner}`);
+    // Ownership is now checked by middleware
     venue = await Venue.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
     });
 
+    console.log(`[updateVenue] Venue updated successfully`);
     res.status(200).json({
       success: true,
       data: venue
     });
   } catch (err) {
+    console.error('[updateVenue] Error:', err);
     next(err);
   }
 };
@@ -179,20 +185,14 @@ exports.deleteVenue = async (req, res, next) => {
     const venue = await Venue.findById(req.params.id);
 
     if (!venue) {
-      return res.status(404).json({
-        success: false,
-        message: 'Venue not found'
-      });
+      return next(
+        new ErrorResponse(`Venue not found with id of ${req.params.id}`, 404)
+      );
     }
 
-    // Make sure user is venue owner or admin
-    if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to delete this venue'
-      });
-    }
-
+    // Ownership is now checked by middleware
+    
+    // Remove venue
     await venue.remove();
 
     res.status(200).json({
@@ -243,19 +243,12 @@ exports.uploadVenuePhoto = async (req, res, next) => {
     const venue = await Venue.findById(req.params.id);
 
     if (!venue) {
-      return res.status(404).json({
-        success: false,
-        message: 'Venue not found'
-      });
+      return next(
+        new ErrorResponse(`Venue not found with id of ${req.params.id}`, 404)
+      );
     }
 
-    // Make sure user is venue owner or admin
-    if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this venue'
-      });
-    }
+    // Ownership is now checked by middleware
 
     if (!req.files) {
       return next(new ErrorResponse(`Please upload a file`, 400));
@@ -315,12 +308,7 @@ exports.uploadPromoVideo = async (req, res, next) => {
       );
     }
 
-    // Make sure user is venue owner or admin
-    if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return next(
-        new ErrorResponse(`User ${req.user.id} is not authorized to update this venue's videos`, 401)
-      );
-    }
+    // Ownership is now checked by middleware
 
     // Update video URL and hasPromoVideo status
     const { videoUrl } = req.body;
@@ -356,12 +344,7 @@ exports.upload360Tour = async (req, res, next) => {
       );
     }
 
-    // Make sure user is venue owner or admin
-    if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return next(
-        new ErrorResponse(`User ${req.user.id} is not authorized to update this venue's tour`, 401)
-      );
-    }
+    // Ownership is now checked by middleware
 
     // Update tour URL and has360Tour status
     const { tourUrl } = req.body;
@@ -491,34 +474,6 @@ exports.submitVenueForm = async (req, res, next) => {
     });
   } catch (err) {
     console.error('Error submitting venue form:', err);
-    next(err);
-  }
-};
-
-// @desc    Check if user owns a venue
-// @route   GET /api/venues/:id/check-ownership
-// @access  Private
-exports.checkVenueOwnership = async (req, res, next) => {
-  try {
-    const venue = await Venue.findById(req.params.id);
-
-    if (!venue) {
-      return res.status(404).json({
-        success: false,
-        message: 'Venue not found'
-      });
-    }
-
-    // Check if logged in user is the owner or an admin
-    const isOwner = 
-      venue.owner.toString() === req.user.id || 
-      req.user.role === 'admin';
-
-    res.status(200).json({
-      success: true,
-      isOwner
-    });
-  } catch (err) {
     next(err);
   }
 }; 

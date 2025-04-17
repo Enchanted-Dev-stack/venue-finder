@@ -102,6 +102,11 @@ const MenuSchema = new mongoose.Schema({
     ref: 'Venue',
     required: true
   },
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+    required: true
+  },
   isActive: {
     type: Boolean,
     default: true

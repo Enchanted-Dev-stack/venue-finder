@@ -46,7 +46,7 @@ exports.createMenu = asyncHandler(async (req, res, next) => {
     }
 
     // Make sure user is venue owner
-    if (venue.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
       return next(
         new ErrorResponse(
           `User ${req.user.id} is not authorized to add a menu to venue ${venue._id}`,
@@ -77,7 +77,7 @@ exports.updateMenu = asyncHandler(async (req, res, next) => {
   }
 
   // Make sure user is menu owner or admin
-  if (menu.user.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (menu.user && menu.user.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(
       new ErrorResponse(
         `User ${req.user.id} is not authorized to update this menu`,
@@ -110,7 +110,7 @@ exports.deleteMenu = asyncHandler(async (req, res, next) => {
   }
 
   // Make sure user is menu owner or admin
-  if (menu.user.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (menu.user && menu.user.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(
       new ErrorResponse(
         `User ${req.user.id} is not authorized to delete this menu`,
