@@ -112,4 +112,22 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
-module.exports = router; 
+// STAFF AUTH ROUTES
+// Import staff auth controller
+const {
+  staffLogin,
+  staffLogout,
+  forgotPassword,
+  resetPassword,
+  validateToken
+} = require('../controllers/staffAuth');
+const { protectStaff } = require('../middleware/staffAuth');
+
+// Staff auth routes
+router.post('/staff/login', staffLogin);
+router.get('/staff/logout', protectStaff, staffLogout);
+router.post('/staff/forgotpassword', forgotPassword);
+router.put('/staff/resetpassword/:resettoken', resetPassword);
+router.post('/staff/validate', validateToken);
+
+module.exports = router;

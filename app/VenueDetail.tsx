@@ -10,6 +10,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { StatusBar } from 'expo-status-bar'
 
 import VenueCard from "@/components/VenueCard"
+import VenueMenu from "@/components/Venue/VenueMenu"
 
 // Define the venue interface based on the API response
 interface Venue {
@@ -67,6 +68,24 @@ interface Venue {
 type VenueDetailRouteParams = {
   id: string;
 };
+
+// Define the app's navigation structure for TypeScript
+type RootStackParamList = {
+  Home: undefined;
+  VenueDetail: { id: string };
+  VenuePackages: { venueId: string; venueName: string };
+  ReservationForm: { 
+    venueId: string;
+    venueName: string;
+    packageId: string;
+    packageName: string;
+    packagePrice: number;
+    packagePriceType: string;
+  };
+};
+
+// Type for navigation prop
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const Tab = createMaterialTopTabNavigator()
 
@@ -178,40 +197,10 @@ function AboutTab({ venue }: { venue: Venue }) {
 }
 
 function MenuTab({ venue }: { venue: Venue }) {
-  // Group menu items by category
-  const menuCategories = venue.pricingMenu ? Object.values(venue.pricingMenu.reduce((acc, item) => {
-    const category = item.category || 'Other';
-    if (!acc[category]) {
-      acc[category] = { category, items: [] };
-    }
-    acc[category].items.push(item);
-    return acc;
-  }, {})) : [];
-
   return (
-    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      {menuCategories.length > 0 ? (
-        menuCategories.map((category: any, index) => (
-          <View key={index} style={styles.menuCategory}>
-            <Text style={styles.menuCategoryTitle}>{category.category}</Text>
-            {category.items.map((item: any, itemIndex: number) => (
-              <View key={itemIndex} style={styles.menuItem}>
-                <View style={styles.menuItemContent}>
-                  <Text style={styles.menuItemName}>{item.name}</Text>
-                  <Text style={styles.menuItemDescription}>{item.description}</Text>
-                </View>
-                <Text style={styles.menuItemPrice}>${item.price.toFixed(2)}</Text>
-              </View>
-            ))}
-          </View>
-        ))
-      ) : (
-        <View style={styles.emptyState}>
-          <Ionicons name="restaurant-outline" size={48} color="#d1d5db" />
-          <Text style={styles.emptyStateText}>No menu items available</Text>
-        </View>
-      )}
-    </ScrollView>
+    <View style={styles.tabContent}>
+      <VenueMenu venueId={venue._id} />
+    </View>
   )
 }
 
@@ -310,8 +299,8 @@ function PhotosTab({ venue }: { venue: Venue }) {
 }
 
 export default function VenueDetailScreen() {
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<Record<string, VenueDetailRouteParams>, string>>();
+  const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'VenueDetail'>>();
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [venue, setVenue] = useState<Venue | null>(null);
@@ -426,7 +415,13 @@ export default function VenueDetailScreen() {
             </TouchableOpacity>
           )}
           {venue.acceptingBookings && (
-            <TouchableOpacity style={styles.primaryButton}>
+            <TouchableOpacity 
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate('VenuePackages', {
+                venueId: venue._id,
+                venueName: venue.name
+              })}
+            >
               <Ionicons name="calendar" size={20} color="#fff" />
               <Text style={styles.primaryButtonText}>Reserve</Text>
             </TouchableOpacity>
@@ -805,4 +800,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 })
-

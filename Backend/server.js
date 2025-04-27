@@ -36,6 +36,8 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/profile', require('./routes/profile'));
 app.use('/api/offers', require('./routes/offers'));
 app.use('/api/menus', require('./routes/menus'));
+app.use('/api/packages', require('./routes/packages'));
+app.use('/api/staff', require('./routes/staff')); // Staff management routes
 
 // Basic route
 app.get('/', (req, res) => {

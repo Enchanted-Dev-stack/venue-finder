@@ -17,6 +17,9 @@ const {
   submitVenueForm
 } = require('../controllers/venues');
 
+// Import package controller
+const { getVenuePackages } = require('../controllers/packages');
+
 // Include review router
 const reviewRouter = require('./reviews');
 // Include offers router
@@ -30,6 +33,9 @@ router.use('/:venueId/reviews', reviewRouter);
 router.use('/:venueId/offers', offersRouter);
 // Re-route venue menus
 router.use('/:venueId/menus', menusRouter);
+
+// Get all packages for a venue
+router.get('/:venueId/packages', getVenuePackages);
 
 // Middleware to conditionally apply authentication
 const conditionalProtect = (req, res, next) => {
