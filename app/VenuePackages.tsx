@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, ActivityIndicator, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -17,22 +15,31 @@ interface Package {
   _id: string;
   name: string;
   description: string;
-  price: {
+  price?: {
     amount: number;
     currency: string;
-    unit: 'fixed' | 'per_person';
+    unit: 'fixed' | 'per_person' | 'hour';
   };
-  duration: number; // in hours
+  duration?: {
+    hours: number;
+    days: number;
+  };
+  images?: string[];
+  capacity?: {
+    min: number;
+    max: number;
+  };
   includes?: string[];
-  maxCapacity: number;
-  imageUrl?: string;
-  isAvailable: boolean;
+  available: boolean;
+  venue: {
+    _id: string;
+    name: string;
+  };
 }
 
-// Define venue interface (simplified)
-interface Venue {
-  _id: string;
-  name: string;
+interface ApiResponse {
+  success: boolean;
+  count: number;
   packages: Package[];
 }
 
@@ -48,122 +55,194 @@ type AppParamList = {
     packageId: string;
     packageName: string;
     packagePrice: number;
-    packagePriceType: 'fixed' | 'per_person';
+    packagePriceType: 'fixed' | 'per_person' | 'hour';
   };
 };
 
-type VenuePackagesProps = {
-  route: RouteProp<AppParamList, 'VenuePackages'>;
-  navigation: NavigationProp<AppParamList>;
-};
-
-export default function VenuePackages(props: Partial<VenuePackagesProps>) {
-  // Use direct hooks to ensure we always have navigation objects
+const VenuePackages = () => {
+  // Direct hooks for navigation and route
   const navigation = useNavigation<NavigationProp<AppParamList>>();
   const route = useRoute<RouteProp<AppParamList, 'VenuePackages'>>();
   
-  // Use props if provided, otherwise fallback to hooks
-  const routeToUse = props?.route || route;
-  const navigationToUse = props?.navigation || navigation;
-  
-  // Safety check for route params
-  const { venueId = '', venueName = '' } = routeToUse?.params || {};
-  
+  // State variables
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [venueDetails, setVenueDetails] = useState<{venueId: string, venueName: string}>({
+    venueId: '', 
+    venueName: ''
+  });
 
+  // Safely extract params from route
   useEffect(() => {
-    // Only fetch if we have a venueId
-    if (!venueId) {
-      setError("No venue ID provided");
-      setLoading(false);
-      return;
+    try {
+      if (route && route.params) {
+        setVenueDetails({
+          venueId: route.params.venueId || '',
+          venueName: route.params.venueName || ''
+        });
+      }
+    } catch (err) {
+      console.error("Error accessing route params:", err);
+      setError("Navigation error. Please go back and try again.");
     }
-    
+  }, [route]);
+
+  // Fetch packages when venue details are available
+  useEffect(() => {
     const fetchVenuePackages = async () => {
+      // Only fetch if we have a venueId
+      if (!venueDetails.venueId) {
+        setLoading(false);
+        if (!error) setError("No venue ID provided. Please go back and select a venue.");
+        return;
+      }
+
       try {
         setLoading(true);
-        // Use the dedicated packages API endpoint instead of venue details
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/packages?venue=${venueId}`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/packages?venue=${venueDetails.venueId}`);
         const data = await response.json();
-        console.log('API Response:', JSON.stringify(data, null, 2));
-        
-        if (data.success && data.data) {
-          setPackages(data.data);
+
+        if (data.success) {
+          setPackages(data.data || []);
+          setError(null);
         } else {
-          console.log('API response unsuccessful or missing data, using dummy data');
-          setPackages([
-            {
-              _id: "pkg1",
-              name: "Standard Package",
-              description: "Our basic package including venue rental for 4 hours and standard amenities.",
-              price: {
-                amount: 499,
-                currency: "USD",
-                unit: "fixed"
-              },
-              duration: 4,
-              includes: ["Venue rental", "Basic decoration", "Sound system", "Cleaning service"],
-              maxCapacity: 50,
-              isAvailable: true
-            },
-            {
-              _id: "pkg2",
-              name: "Premium Package",
-              description: "Our premium package includes everything in the standard package plus catering and premium decorations.",
-              price: {
-                amount: 799,
-                currency: "USD",
-                unit: "fixed"
-              },
-              duration: 6,
-              includes: ["Venue rental", "Premium decoration", "Sound system", "Catering service", "Dedicated host", "Cleaning service"],
-              maxCapacity: 80,
-              isAvailable: true
-            },
-            {
-              _id: "pkg3",
-              name: "Deluxe Package",
-              description: "The complete experience with all premium amenities and services.",
-              price: {
-                amount: 129,
-                currency: "USD",
-                unit: "per_person"
-              },
-              duration: 8,
-              includes: ["Venue rental", "Luxury decoration", "Professional sound", "Premium catering", "Dedicated staff", "Photography", "Valet parking"],
-              maxCapacity: 100,
-              isAvailable: true
-            }
-          ]);
+          setError(data.message || "Failed to load packages");
+          setPackages([]);
         }
       } catch (err) {
-        console.error("Error fetching venue packages:", err);
-        setError("Failed to load packages. Please try again later.");
+        console.error("Error fetching packages:", err);
+        setError("Network error. Please check your connection and try again.");
+        setPackages([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchVenuePackages();
-  }, [venueId]);
+  }, [venueDetails.venueId]);
 
   const navigateToReservation = (packageItem: Package) => {
     // Navigate to reservation form with package details
-    navigationToUse.navigate('ReservationForm', {
-      venueId,
-      venueName,
+    navigation.navigate('ReservationForm', {
+      venueId: venueDetails.venueId,
+      venueName: venueDetails.venueName,
       packageId: packageItem._id,
       packageName: packageItem.name,
       packagePrice: packageItem.price?.amount || 0,
-      packagePriceType: packageItem.price?.unit || 'fixed' as 'fixed' | 'per_person'
+      packagePriceType: packageItem.price?.unit || 'fixed' as 'fixed' | 'per_person' | 'hour'
     });
+  };
+
+  const goBack = () => {
+    navigation.goBack();
+  };
+
+  const renderPackage = ({ item }: { item: Package }) => {
+    // Format price with currency
+    const formatPrice = (price?: { amount: number; unit: string }) => {
+      if (!price) return "Price unavailable";
+      return `$${price.amount} ${price.unit === 'per_person' ? '/ person' : price.unit === 'hour' ? '/ hour' : ''}`;
+    };
+
+    // Calculate display for duration
+    const formatDuration = (duration?: { hours: number; days: number }) => {
+      if (!duration) return null;
+      if (duration.days > 0) {
+        return `${duration.days} day${duration.days > 1 ? 's' : ''}`;
+      } else if (duration.hours > 0) {
+        return `${duration.hours} hour${duration.hours > 1 ? 's' : ''}`;
+      }
+      return null;
+    };
+
+    // Limit the number of includes items to display
+    const displayIncludes = item.includes ? item.includes.slice(0, 3) : [];
+    const remainingIncludes = item.includes ? Math.max(0, item.includes.length - 3) : 0;
+
+    return (
+      <View style={styles.packageCard}>
+        <View style={styles.packageBanner}>
+          {item.images && item.images.length > 0 ? (
+            <Image 
+              source={{ uri: item.images[0] }}
+              style={styles.packageImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <LinearGradient
+              colors={['#6366f1', '#4f46e5']}
+              style={styles.packageImage}
+            />
+          )}
+          <View style={styles.priceTag}>
+            <Text style={styles.priceText}>{formatPrice(item.price)}</Text>
+          </View>
+          {!item.available && (
+            <View style={styles.unavailableBadge}>
+              <Text style={styles.unavailableBadgeText}>Currently Unavailable</Text>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.packageContent}>
+          <View style={styles.packageHeader}>
+            <Text style={styles.packageName}>{item.name}</Text>
+            {formatDuration(item.duration) && (
+              <View style={styles.durationBadge}>
+                <Ionicons name="time-outline" size={14} color="#4f46e5" />
+                <Text style={styles.durationText}>{formatDuration(item.duration)}</Text>
+              </View>
+            )}
+          </View>
+          
+          <Text style={styles.packageDescription}>{item.description}</Text>
+          
+          <View style={styles.featuresContainer}>
+            <Text style={styles.featuresTitle}>What's included:</Text>
+            {displayIncludes.length > 0 ? (
+              <View style={styles.includesList}>
+                {displayIncludes.map((include, index) => (
+                  <View key={index} style={styles.includeItem}>
+                    <View style={styles.checkCircle}>
+                      <Ionicons name="checkmark" size={14} color="#fff" />
+                    </View>
+                    <Text style={styles.includeText}>{include}</Text>
+                  </View>
+                ))}
+                {remainingIncludes > 0 && (
+                  <Text style={styles.moreIncludes}>+{remainingIncludes} more items</Text>
+                )}
+              </View>
+            ) : (
+              <Text style={styles.noIncludeText}>No includes specified for this package</Text>
+            )}
+          </View>
+          
+          {item.capacity && (
+            <View style={styles.capacityContainer}>
+              <Ionicons name="people-outline" size={16} color="#64748b" />
+              <Text style={styles.capacityText}>
+                {item.capacity.min === item.capacity.max
+                  ? `Capacity: ${item.capacity.max} people`
+                  : `Capacity: ${item.capacity.min}-${item.capacity.max} people`}
+              </Text>
+            </View>
+          )}
+          
+          <TouchableOpacity 
+            style={[styles.selectButton, !item.available && { opacity: 0.6 }]}
+            onPress={() => item.available && navigateToReservation(item)}
+            disabled={!item.available}
+          >
+            <Text style={styles.selectButtonText}>
+              {item.available ? 'Select Package' : 'Not Available'}
+            </Text>
+            {item.available && <Ionicons name="arrow-forward" size={18} color="#fff" />}
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   };
 
   if (loading) {
@@ -184,7 +263,7 @@ export default function VenuePackages(props: Partial<VenuePackagesProps>) {
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity 
           style={styles.primaryButton} 
-          onPress={() => navigationToUse.goBack()}
+          onPress={goBack}
         >
           <Text style={styles.primaryButtonText}>Go Back</Text>
         </TouchableOpacity>
@@ -201,7 +280,7 @@ export default function VenuePackages(props: Partial<VenuePackagesProps>) {
         <Text style={styles.emptyText}>This venue doesn't have any packages available at the moment.</Text>
         <TouchableOpacity 
           style={styles.primaryButton} 
-          onPress={() => navigationToUse.goBack()}
+          onPress={goBack}
         >
           <Text style={styles.primaryButtonText}>Go Back</Text>
         </TouchableOpacity>
@@ -212,145 +291,36 @@ export default function VenuePackages(props: Partial<VenuePackagesProps>) {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
-      {/* Hero section with back button overlay */}
       <View style={styles.heroContainer}>
-        <Image 
-          source={{ 
-            uri: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop"
-          }} 
+        <LinearGradient
+          colors={['#4f46e5', '#6366f1']}
           style={styles.heroImage}
         />
         <View style={styles.heroOverlay} />
         
         <TouchableOpacity 
           style={styles.backButton} 
-          onPress={() => navigationToUse.goBack()}
+          onPress={goBack}
         >
           <Ionicons name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
         
         <View style={styles.heroContent}>
-          <Text style={styles.heroSubtitle}>Choose a Package</Text>
-          <Text style={styles.heroTitle}>{venueName}</Text>
+          <Text style={styles.heroSubtitle}>Venue Packages</Text>
+          <Text style={styles.heroTitle}>{venueDetails.venueName}</Text>
         </View>
       </View>
       
-      {/* Packages list */}
       <FlatList
         data={packages}
+        renderItem={renderPackage}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.packagesList}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item: pkg }) => (
-          <TouchableOpacity 
-            style={styles.packageCard}
-            onPress={() => navigateToReservation(pkg)}
-            activeOpacity={0.95}
-          >
-            {/* Package Card Banner */}
-            <View style={styles.packageBanner}>
-              {pkg.imageUrl ? (
-                <Image 
-                  source={{ uri: pkg.imageUrl }} 
-                  style={styles.packageImage}
-                />
-              ) : (
-                <LinearGradient
-                  colors={['#4f46e5', '#7c3aed']}
-                  style={styles.packageImage}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                />
-              )}
-              
-              {/* Availability Badge */}
-              {!pkg.isAvailable && (
-                <View style={styles.unavailableBadge}>
-                  <Text style={styles.unavailableBadgeText}>Currently Unavailable</Text>
-                </View>
-              )}
-              
-              {/* Price Tag */}
-              <View style={styles.priceTag}>
-                <Text style={styles.priceText}>
-                  {pkg.price && pkg.price.amount 
-                    ? `${pkg.price.currency === 'USD' ? '$' : ''}${pkg.price.amount}` 
-                    : '$0'}
-                </Text>
-                <Text style={styles.priceUnit}>
-                  {pkg.price && pkg.price.unit === 'per_person' 
-                    ? ' / person' 
-                    : pkg.price && pkg.price.unit === 'fixed' ? ' total' : ''}
-                </Text>
-              </View>
-            </View>
-            
-            {/* Package Content */}
-            <View style={styles.packageContent}>
-              <View style={styles.packageHeader}>
-                <Text style={styles.packageName}>{pkg.name}</Text>
-                {pkg.duration && (
-                  <View style={styles.durationBadge}>
-                    <Ionicons name="time-outline" size={14} color="#4f46e5" style={{marginRight: 4}} />
-                    <Text style={styles.durationText}>{pkg.duration} hours</Text>
-                  </View>
-                )}
-              </View>
-              
-              <Text style={styles.packageDescription}>{pkg.description}</Text>
-              
-              {/* Features */}
-              <View style={styles.featuresContainer}>
-                <Text style={styles.featuresTitle}>What's included:</Text>
-                
-                {/* Inclusions */}
-                <View style={styles.includesList}>
-                  {pkg.includes && pkg.includes.length > 0 ? (
-                    <>
-                      {pkg.includes.slice(0, 3).map((item, index) => (
-                        <View key={index} style={styles.includeItem}>
-                          <View style={styles.checkCircle}>
-                            <Ionicons name="checkmark" size={12} color="#fff" />
-                          </View>
-                          <Text style={styles.includeText}>{item}</Text>
-                        </View>
-                      ))}
-                      {pkg.includes.length > 3 && (
-                        <Text style={styles.moreIncludes}>+{pkg.includes.length - 3} more included</Text>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.includeItem}>
-                      <Text style={styles.noIncludeText}>No inclusions specified</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-              
-              {/* Capacity Badge */}
-              {pkg.maxCapacity > 0 && (
-                <View style={styles.capacityContainer}>
-                  <Ionicons name="people-outline" size={16} color="#64748b" />
-                  <Text style={styles.capacityText}>Up to {pkg.maxCapacity} guests</Text>
-                </View>
-              )}
-              
-              {/* Select Button */}
-              <TouchableOpacity 
-                style={styles.selectButton}
-                onPress={() => navigateToReservation(pkg)}
-              >
-                <Text style={styles.selectButtonText}>Select Package</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        )}
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -678,3 +648,5 @@ const styles = StyleSheet.create({
     marginRight: 8,
   }
 });
+
+export default VenuePackages;

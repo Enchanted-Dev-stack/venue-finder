@@ -4,6 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import ThemeSwitch from '@/components/ui/ThemeSwitch';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Colors, BorderRadius, Spacing, Shadows } from '@/constants/Colors';
 import * as Haptics from 'expo-haptics';
 
 // Define bottom padding based on platform
@@ -12,7 +15,8 @@ const BOTTOM_PADDING = Platform.OS === 'ios' ? 88 : 60;
 export default function ProfileScreen() {
   const router = useRouter();
   const { logout, user  } = useAuth();
-
+  const { currentTheme } = useTheme();
+  const colors = Colors[currentTheme];
   const handleLogout = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
@@ -37,13 +41,16 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
-          <TouchableOpacity style={styles.settingsButton}>
-            <Ionicons name="settings-outline" size={24} color="#1f2937" />
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={() => router.push('/ProfileSettings')}
+          >
+            <Ionicons name="settings-outline" size={24} color={colors.icon} />
           </TouchableOpacity>
         </View>
 
@@ -53,95 +60,101 @@ export default function ProfileScreen() {
             source={{ uri: user?.profileImage || 'https://i.pravatar.cc/300?img=32' }}
             style={styles.profileImage}
           />
-          <Text style={styles.userName}>{user?.fullName || "User"}</Text>
-          <Text style={styles.userLocation}>{user?.email || "Email"}</Text>
+          <Text style={[styles.userName, { color: colors.text }]}>{user?.fullName || "User"}</Text>
+          <Text style={[styles.userLocation, { color: colors.textSecondary }]}>{user?.email || "Email"}</Text>
           
           <TouchableOpacity 
-            style={styles.editProfileButton}
+            style={[styles.editProfileButton, { borderColor: colors.icon }]}
             onPress={() => router.push('/EditProfile')}
           >
-            <Text style={styles.editProfileText}>Edit Profile</Text>
+            <Text style={[styles.editProfileText, { color: colors.text }]}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
 
         {/* Stats */}
-        <View style={styles.statsContainer}>
+        <View style={[styles.statsContainer, { backgroundColor: currentTheme === 'dark' ? Colors.dark.surface : Colors.light.surface }]}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>24</Text>
-            <Text style={styles.statLabel}>Bookmarks</Text>
+            <Text style={[styles.statNumber, { color: colors.text }]}>24</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Bookmarks</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>18</Text>
-            <Text style={styles.statLabel}>Reviews</Text>
+            <Text style={[styles.statNumber, { color: colors.text }]}>18</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Reviews</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>36</Text>
-            <Text style={styles.statLabel}>Visited</Text>
+            <Text style={[styles.statNumber, { color: colors.text }]}>36</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Visited</Text>
           </View>
         </View>
 
         {/* Menu Items */}
-        <View style={styles.menuContainer}>
+        <View style={[styles.menuContainer]}>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: colors.divider }]}
             onPress={() => router.push('/SavedVenues')}
           >
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="bookmark-outline" size={22} color="#3b82f6" />
+            <View style={[styles.menuIconContainer, { backgroundColor: currentTheme === 'dark' ? Colors.dark.surface : Colors.light.surface }]}>
+              <Ionicons name="bookmark-outline" size={22} color={colors.primary} />
             </View>
-            <Text style={styles.menuItemText}>Saved Venues</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <Text style={[styles.menuItemText, { color: colors.text }]}>Saved Venues</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.icon} />
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: colors.divider }]}
             onPress={() => router.push('/MyReviews')}
           >
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="star-outline" size={22} color="#3b82f6" />
+            <View style={[styles.menuIconContainer, { backgroundColor: currentTheme === 'dark' ? Colors.dark.surface : Colors.light.surface }]}>
+              <Ionicons name="star-outline" size={22} color={colors.primary} />
             </View>
-            <Text style={styles.menuItemText}>My Reviews</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <Text style={[styles.menuItemText, { color: colors.text }]}>My Reviews</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.icon} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="notifications-outline" size={22} color="#3b82f6" />
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.divider }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: currentTheme === 'dark' ? Colors.dark.surface : Colors.light.surface }]}>
+              <Ionicons name="notifications-outline" size={22} color={colors.primary} />
             </View>
-            <Text style={styles.menuItemText}>Notifications</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <Text style={[styles.menuItemText, { color: colors.text }]}>Notifications</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.icon} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="time-outline" size={22} color="#3b82f6" />
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.divider }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: currentTheme === 'dark' ? Colors.dark.surface : Colors.light.surface }]}>
+              <Ionicons name="time-outline" size={22} color={colors.primary} />
             </View>
-            <Text style={styles.menuItemText}>Recent Activity</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <Text style={[styles.menuItemText, { color: colors.text }]}>Recent Activity</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.icon} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="help-circle-outline" size={22} color="#3b82f6" />
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.divider }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: currentTheme === 'dark' ? Colors.dark.surface : Colors.light.surface }]}>
+              <Ionicons name="help-circle-outline" size={22} color={colors.primary} />
             </View>
-            <Text style={styles.menuItemText}>Help & Support</Text>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <Text style={[styles.menuItemText, { color: colors.text }]}>Help & Support</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.icon} />
           </TouchableOpacity>
         </View>
 
+        {/* Theme Switcher */}
+        <View style={[styles.themeContainer, { backgroundColor: colors.card }]}>
+          <ThemeSwitch />
+        </View>
+        
         {/* Logout Button */}
         <TouchableOpacity 
-          style={styles.logoutButton}
+          style={[styles.logoutButton, { backgroundColor: colors.button }]}
           onPress={handleLogout}
+          activeOpacity={0.8}
         >
-          <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Ionicons name="log-out-outline" size={20} color={Colors.status.error} />
+          <Text style={[styles.logoutText, { color: Colors.status.error }]}>Log Out</Text>
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Venue Finder v1.0.0</Text>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>Venue Finder v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -151,121 +164,123 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: 'Outfitsemibold',
-    color: '#1f2937',
   },
   settingsButton: {
-    padding: 5,
+    padding: Spacing.xs,
   },
   profileSection: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: Spacing.xxl,
   },
   profileImage: {
     width: 100,
     height: 100,
-    borderRadius: 50,
-    marginBottom: 15,
+    borderRadius: BorderRadius.full,
+    marginBottom: Spacing.lg,
   },
   userName: {
     fontSize: 22,
     fontFamily: 'Outfitsemibold',
-    color: '#1f2937',
-    marginBottom: 5,
+    marginBottom: Spacing.xs,
   },
   userLocation: {
     fontSize: 16,
     fontFamily: 'Outfitmedium',
-    color: '#6b7280',
-    marginBottom: 15,
+    marginBottom: Spacing.lg,
   },
   editProfileButton: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
+    borderRadius: BorderRadius.medium,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xxl,
   },
   editProfileText: {
     fontSize: 14,
     fontFamily: 'Outfitmedium',
-    color: '#3b82f6',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 20,
-    marginHorizontal: 20,
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    marginBottom: 25,
+    marginTop: Spacing.xl,
+    marginHorizontal: Spacing.xl,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.medium,
+    ...Shadows.light.small,
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
   statNumber: {
     fontSize: 18,
     fontFamily: 'Outfitsemibold',
-    color: '#1f2937',
-    marginBottom: 5,
+    marginBottom: Spacing.xs,
   },
   statLabel: {
     fontSize: 14,
     fontFamily: 'Outfitmedium',
-    color: '#6b7280',
   },
   statDivider: {
     width: 1,
     height: 30,
-    backgroundColor: '#e5e7eb',
   },
   menuContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: Spacing.xl,
+    marginVertical: Spacing.xl,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   menuIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 10,
-    backgroundColor: '#f0f9ff',
+    borderRadius: BorderRadius.small,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 15,
+    marginRight: Spacing.lg,
   },
   menuItemText: {
     flex: 1,
     fontSize: 16,
     fontFamily: 'Outfitmedium',
-    color: '#1f2937',
+    marginLeft: Spacing.lg,
+  },
+  themeContainer: {
+    marginTop: Spacing.xl,
+    marginHorizontal: Spacing.xl,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.medium,
+  },
+  themeTitle: {
+    fontSize: 18,
+    fontFamily: 'Outfitmedium',
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#fee2e2',
-    borderRadius: 12,
-    marginBottom: 30,
+    marginTop: Spacing.xxl,
+    marginHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.medium,
+    marginBottom: Spacing.xxl,
+    ...Shadows.light.small,
   },
   logoutText: {
     fontSize: 16,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import { View, TextInput, StyleSheet, TouchableOpacity, Modal, Text, Switch, Pressable, Platform } from "react-native"
+import { View, TextInput, StyleSheet, TouchableOpacity, Modal, Text, Switch, Pressable, Platform, useColorScheme } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Slider from "@react-native-community/slider"
 
@@ -12,6 +12,26 @@ type SearchBarProps = {
 export default function SearchBar({ style }: SearchBarProps) {
   const [query, setQuery] = useState("")
   const [filterVisible, setFilterVisible] = useState(false)
+  const colorScheme = useColorScheme()
+  
+  // Theme colors
+  const themeColors = {
+    background: colorScheme === 'dark' ? '#121212' : '#fff',
+    searchBackground: colorScheme === 'dark' ? '#2c2c2c' : '#f3f4f6',
+    modalBackground: colorScheme === 'dark' ? '#1e1e1e' : 'white',
+    text: colorScheme === 'dark' ? '#ffffff' : '#000000',
+    placeholderText: colorScheme === 'dark' ? '#9ca3af' : '#6b7280',
+    textSecondary: colorScheme === 'dark' ? '#a3a3a3' : '#6b7280',
+    textTertiary: colorScheme === 'dark' ? '#737373' : '#4b5563',
+    border: colorScheme === 'dark' ? '#333333' : '#f3f4f6',
+    switchTrackOff: colorScheme === 'dark' ? '#525252' : '#e5e7eb',
+    switchTrackOn: colorScheme === 'dark' ? '#3b82f6' : '#bfdbfe',
+    switchThumbOff: colorScheme === 'dark' ? '#a3a3a3' : '#f4f3f4',
+    switchThumbOn: colorScheme === 'dark' ? '#3b82f6' : '#3b82f6',
+    buttonPrimary: colorScheme === 'dark' ? '#3b82f6' : '#3b82f6',
+    buttonOutline: colorScheme === 'dark' ? '#333333' : '#d1d5db',
+    modalOverlay: 'rgba(0, 0, 0, 0.5)'
+  }
   
   // External values used for display
   const [priceDisplay, setPriceDisplay] = useState(50)
@@ -76,17 +96,18 @@ export default function SearchBar({ style }: SearchBarProps) {
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#6b7280" style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: themeColors.searchBackground }]}>
+        <Ionicons name="search" size={20} color={themeColors.placeholderText} style={styles.searchIcon} />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: themeColors.text }]}
           placeholder="Search venues..."
+          placeholderTextColor={themeColors.placeholderText}
           value={query}
           onChangeText={setQuery}
           clearButtonMode="while-editing"
         />
         <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
-          <Ionicons name="options" size={20} color="#000" />
+          <Ionicons name="options" size={20} color={themeColors.text} />
         </TouchableOpacity>
       </View>
 
@@ -96,17 +117,17 @@ export default function SearchBar({ style }: SearchBarProps) {
         visible={filterVisible}
         onRequestClose={() => setFilterVisible(false)}
       >
-        <Pressable style={styles.modalOverlay} onPress={() => setFilterVisible(false)}>
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={[styles.modalOverlay, { backgroundColor: themeColors.modalOverlay }]} onPress={() => setFilterVisible(false)}>
+          <Pressable style={[styles.modalContent, { backgroundColor: themeColors.modalBackground }]} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filters</Text>
-              <Text style={styles.modalSubtitle}>Refine your search results with these filters.</Text>
+              <Text style={[styles.modalTitle, { color: themeColors.text }]}>Filters</Text>
+              <Text style={[styles.modalSubtitle, { color: themeColors.textSecondary }]}>Refine your search results with these filters.</Text>
             </View>
 
             <View style={styles.filterSection}>
               <View style={styles.filterTitleRow}>
-                <Text style={styles.filterTitle}>Price Range</Text>
-                <Text style={styles.sliderValue}>${priceDisplay}</Text>
+                <Text style={[styles.filterTitle, { color: themeColors.text }]}>Price Range</Text>
+                <Text style={[styles.sliderValue, { color: themeColors.buttonPrimary }]}>Up to ${priceDisplay}</Text>
               </View>
               
               <View style={styles.sliderContainer}>
@@ -144,8 +165,10 @@ export default function SearchBar({ style }: SearchBarProps) {
                 )}
                 
                 <View style={styles.sliderLabels}>
-                  <Text style={styles.sliderLabel}>$</Text>
-                  <Text style={styles.sliderLabel}>$$$</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.textSecondary }]}>$</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.textSecondary }]}>$$</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.textSecondary }]}>$$$</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.textSecondary }]}>$$$$</Text>
                 </View>
               </View>
             </View>
@@ -201,55 +224,55 @@ export default function SearchBar({ style }: SearchBarProps) {
               <Text style={styles.filterTitle}>Features</Text>
 
               <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Open Now</Text>
+                <Text style={[styles.switchLabel, { color: themeColors.textTertiary }]}>Open now</Text>
                 <Switch
                   value={openNow}
                   onValueChange={setOpenNow}
-                  trackColor={{ false: "#e5e7eb", true: "#bfdbfe" }}
-                  thumbColor={openNow ? "#3b82f6" : "#f4f3f4"}
+                  trackColor={{ false: themeColors.switchTrackOff, true: themeColors.switchTrackOn }}
+                  thumbColor={openNow ? themeColors.switchThumbOn : themeColors.switchThumbOff}
                 />
               </View>
 
               <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Accepts Reservations</Text>
+                <Text style={[styles.switchLabel, { color: themeColors.textTertiary }]}>Accepts reservations</Text>
                 <Switch
                   value={reservations}
                   onValueChange={setReservations}
-                  trackColor={{ false: "#e5e7eb", true: "#bfdbfe" }}
-                  thumbColor={reservations ? "#3b82f6" : "#f4f3f4"}
+                  trackColor={{ false: themeColors.switchTrackOff, true: themeColors.switchTrackOn }}
+                  thumbColor={reservations ? themeColors.switchThumbOn : themeColors.switchThumbOff}
                 />
               </View>
 
               <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Outdoor Seating</Text>
+                <Text style={[styles.switchLabel, { color: themeColors.textTertiary }]}>Outdoor seating</Text>
                 <Switch
                   value={outdoor}
                   onValueChange={setOutdoor}
-                  trackColor={{ false: "#e5e7eb", true: "#bfdbfe" }}
-                  thumbColor={outdoor ? "#3b82f6" : "#f4f3f4"}
+                  trackColor={{ false: themeColors.switchTrackOff, true: themeColors.switchTrackOn }}
+                  thumbColor={outdoor ? themeColors.switchThumbOn : themeColors.switchThumbOff}
                 />
               </View>
 
               <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Free WiFi</Text>
+                <Text style={[styles.switchLabel, { color: themeColors.textTertiary }]}>Free WiFi</Text>
                 <Switch
                   value={wifi}
                   onValueChange={setWifi}
-                  trackColor={{ false: "#e5e7eb", true: "#bfdbfe" }}
-                  thumbColor={wifi ? "#3b82f6" : "#f4f3f4"}
+                  trackColor={{ false: themeColors.switchTrackOff, true: themeColors.switchTrackOn }}
+                  thumbColor={wifi ? themeColors.switchThumbOn : themeColors.switchThumbOff}
                 />
               </View>
             </View>
 
-            <View style={styles.buttonContainer}>
+            <View style={[styles.buttonContainer, { borderTopColor: themeColors.border }]}>
               <TouchableOpacity
-                style={[styles.button, styles.outlineButton]}
+                style={[styles.button, styles.outlineButton, { borderColor: themeColors.buttonOutline }]}
                 onPress={handleReset}
               >
-                <Text style={styles.outlineButtonText}>Reset</Text>
+                <Text style={[styles.outlineButtonText, { color: themeColors.text }]}>Reset</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.button, styles.primaryButton]} 
+                style={[styles.button, styles.primaryButton, { backgroundColor: themeColors.buttonPrimary }]} 
                 onPress={handleApplyFilters}
               >
                 <Text style={styles.primaryButtonText}>Apply Filters</Text>
@@ -269,10 +292,10 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f3f4f6",
     borderRadius: 25,
     paddingHorizontal: 16,
     height: 48,
+    // backgroundColor handled dynamically
   },
   searchIcon: {
     marginRight: 8,
@@ -288,14 +311,14 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    // backgroundColor handled dynamically
   },
   modalContent: {
-    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 16,
     maxHeight: Platform.OS === 'ios' ? '85%' : '90%',
+    // backgroundColor handled dynamically
   },
   modalHeader: {
     marginBottom: 12,
@@ -304,11 +327,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 2,
     fontFamily: "Outfitsemibold",
+    // color handled dynamically
   },
   modalSubtitle: {
     fontSize: 14,
-    color: "#6b7280",
     fontFamily: "Outfitmedium",
+    // color handled dynamically
   },
   filterSection: {
     marginBottom: 16,
@@ -322,7 +346,7 @@ const styles = StyleSheet.create({
   filterTitle: {
     fontSize: 16,
     fontFamily: "Outfitmedium",
-    color: "#1f2937",
+    // color handled dynamically
   },
   sliderContainer: {
     marginVertical: 5,
@@ -345,8 +369,8 @@ const styles = StyleSheet.create({
   sliderValue: {
     fontSize: 14,
     fontFamily: "Outfitmedium",
-    color: "#3b82f6",
     textAlign: "right",
+    // color handled dynamically
   },
   sliderLabels: {
     flexDirection: "row",
@@ -356,7 +380,7 @@ const styles = StyleSheet.create({
   sliderLabel: {
     fontSize: 12,
     fontFamily: "Outfitregular",
-    color: "#6b7280",
+    // color handled dynamically
   },
   switchRow: {
     flexDirection: "row",
@@ -368,7 +392,7 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 14,
     fontFamily: "Outfitmedium",
-    color: "#4b5563",
+    // color handled dynamically
   },
   buttonContainer: {
     flexDirection: "row",
@@ -377,7 +401,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
+    // borderTopColor handled dynamically
   },
   button: {
     paddingVertical: 8,
@@ -388,14 +412,14 @@ const styles = StyleSheet.create({
   },
   outlineButton: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    // borderColor handled dynamically
   },
   primaryButton: {
-    backgroundColor: "#3b82f6",
+    // backgroundColor handled dynamically
   },
   outlineButtonText: {
-    color: "#000",
     fontFamily: "Outfitmedium",
+    // color handled dynamically
   },
   primaryButtonText: {
     color: "#fff",

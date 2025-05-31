@@ -1,7 +1,7 @@
 import {
   DarkTheme,
   DefaultTheme,
-  ThemeProvider,
+  ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack, SplashScreen as ExpoRouterSplashScreen } from "expo-router";
@@ -11,14 +11,37 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+// Inner app component that uses the theme context
+const ThemedApp = () => {
+  // We'll access the theme inside this component after ThemeProvider is available
+  return (
+    <Stack 
+      initialRouteName="splash"
+      screenOptions={{
+        headerShown: false,
+        animation: 'fade',
+      }}
+    >
+      <Stack.Screen name="splash" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="EditProfile" />
+      <Stack.Screen name="MyReviews" />
+      <Stack.Screen name="SavedVenues" />
+      <Stack.Screen name="+not-found" />
+      <Stack.Screen name="VenueDetail" />
+    </Stack>
+  );
+};
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     Pacifico: require("../assets/fonts/Pacifico-Regular.ttf"),
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -79,29 +102,13 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider value={DefaultTheme}>
-          <Stack 
-            initialRouteName="splash"
-            screenOptions={{
-              headerShown: false,
-              animation: 'fade',
-            }}
-          >
-            <Stack.Screen name="splash" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="index" />
-            <Stack.Screen name="EditProfile" />
-            <Stack.Screen name="MyReviews" />
-            <Stack.Screen name="SavedVenues" />
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen name="VenueDetail" />
-          </Stack>
+    <ThemeProvider>
+      <AuthProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <ThemedApp />
           <StatusBar style="auto" />
-        </ThemeProvider>
-      </GestureHandlerRootView>
-    </AuthProvider>
+        </GestureHandlerRootView>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

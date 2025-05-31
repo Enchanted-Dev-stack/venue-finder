@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Animated } from "react-native"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Animated, useColorScheme } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { BlurView } from "expo-blur"
 
@@ -9,6 +9,17 @@ type Category = {
   id: string
   name: string
   icon: string | JSX.Element
+}
+
+// Define category-specific theme colors
+const categoryColors = {
+  all: { color: '#007AFF', lightBg: 'rgba(0, 122, 255, 0.1)', darkBg: 'rgba(0, 122, 255, 0.2)' },
+  restaurants: { color: '#FF9500', lightBg: 'rgba(255, 149, 0, 0.1)', darkBg: 'rgba(255, 149, 0, 0.2)' },
+  cafes: { color: '#AF52DE', lightBg: 'rgba(175, 82, 222, 0.1)', darkBg: 'rgba(175, 82, 222, 0.2)' },
+  bars: { color: '#5856D6', lightBg: 'rgba(88, 86, 214, 0.1)', darkBg: 'rgba(88, 86, 214, 0.2)' },
+  gaming: { color: '#32D74B', lightBg: 'rgba(50, 215, 75, 0.1)', darkBg: 'rgba(50, 215, 75, 0.2)' },
+  pizza: { color: '#FF3B30', lightBg: 'rgba(255, 59, 48, 0.1)', darkBg: 'rgba(255, 59, 48, 0.2)' },
+  music: { color: '#FF2D55', lightBg: 'rgba(255, 45, 85, 0.1)', darkBg: 'rgba(255, 45, 85, 0.2)' },
 }
 
 const categories: Category[] = [
@@ -51,6 +62,50 @@ const categories: Category[] = [
 
 export default function CategoryFilter() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const colorScheme = useColorScheme()
+  
+  // Theme colors
+  const themeColors = {
+    background: colorScheme === 'dark' ? '#121212' : '#fff',
+    text: colorScheme === 'dark' ? '#ffffff' : '#000000',
+    textSecondary: colorScheme === 'dark' ? '#aaaaaa' : '#8E8E93',
+    buttonBackground: colorScheme === 'dark' ? 'rgba(50, 50, 50, 0.8)' : 'rgba(242, 242, 247, 0.8)',
+    buttonBackgroundSelected: colorScheme === 'dark' ? 'rgba(50, 50, 50, 0.9)' : 'rgba(242, 242, 247, 0.9)',
+    buttonBorder: colorScheme === 'dark' ? 'rgba(80, 80, 80, 0.2)' : 'transparent',
+    buttonBorderSelected: colorScheme === 'dark' ? 'rgba(0, 122, 255, 0.4)' : 'rgba(0, 122, 255, 0.2)',
+    iconBackground: colorScheme === 'dark' ? '#2c2c2c' : '#FFFFFF',
+    iconBackgroundSelected: colorScheme === 'dark' ? 'rgba(0, 122, 255, 0.2)' : 'rgba(0, 122, 255, 0.1)',
+    iconColor: colorScheme === 'dark' ? '#999999' : '#8E8E93',
+    shadow: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.1)'
+  }
+  
+  // Get color for specific category
+  const getCategoryColor = (categoryId: string, isSelected: boolean) => {
+    const defaultColor = '#8E8E93'
+    const colorInfo = categoryColors[categoryId as keyof typeof categoryColors]
+    return isSelected ? colorInfo?.color || '#007AFF' : defaultColor
+  }
+  
+  // Get background color for specific category
+  const getCategoryBgColor = (categoryId: string, isSelected: boolean) => {
+    const colorInfo = categoryColors[categoryId as keyof typeof categoryColors]
+    const isDark = colorScheme === 'dark'
+    
+    if (isSelected) {
+      return isDark ? colorInfo?.darkBg || 'rgba(0, 122, 255, 0.2)' : colorInfo?.lightBg || 'rgba(0, 122, 255, 0.1)'
+    }
+    return isDark ? '#2c2c2c' : '#FFFFFF'
+  }
+  
+  // Get border color for specific category
+  const getCategoryBorderColor = (categoryId: string, isSelected: boolean) => {
+    const colorInfo = categoryColors[categoryId as keyof typeof categoryColors]
+    if (isSelected) {
+      return `${colorInfo?.color}40` || 'rgba(0, 122, 255, 0.4)' // 40 = 25% opacity in hex
+    }
+    return colorScheme === 'dark' ? 'rgba(80, 80, 80, 0.2)' : 'transparent'
+  }
+  
   const animatedValues = useRef(
     categories.reduce((acc, category) => {
       acc[category.id] = new Animated.Value(category.id === "all" ? 1 : 0)
@@ -91,20 +146,27 @@ export default function CategoryFilter() {
           backgroundColor: animatedValues[category.id].interpolate({
             inputRange: [0, 1],
             outputRange: [
-              Platform.OS === 'ios' ? 'rgba(242, 242, 247, 0.8)' : '#F2F2F7',
-              Platform.OS === 'ios' ? 'rgba(242, 242, 247, 0.9)' : '#F2F2F7'
+              themeColors.buttonBackground,
+              themeColors.buttonBackgroundSelected
             ]
           }),
           borderColor: animatedValues[category.id].interpolate({
             inputRange: [0, 1],
-            outputRange: ['transparent', Platform.OS === 'ios' ? 'rgba(0, 122, 255, 0.2)' : '#007AFF20']
+            outputRange: [
+              getCategoryBorderColor(category.id, false),
+              getCategoryBorderColor(category.id, true)
+            ]
           }),
           transform: [{
             scale: animatedValues[category.id].interpolate({
               inputRange: [0, 1],
-              outputRange: [1, 1.02]
+              outputRange: [1, 1.05]
             })
-          }]
+          }],
+          elevation: animatedValues[category.id].interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 4]
+          })
         }
         
         return (
@@ -119,14 +181,17 @@ export default function CategoryFilter() {
                 {
                   backgroundColor: animatedValues[category.id].interpolate({
                     inputRange: [0, 1],
-                    outputRange: ['#FFFFFF', Platform.OS === 'ios' ? 'rgba(0, 122, 255, 0.1)' : '#007AFF10']
+                    outputRange: [
+                      themeColors.iconBackground,
+                      getCategoryBgColor(category.id, true)
+                    ]
                   })
                 }
               ]}>
                 <Ionicons
                   name={category.icon as keyof typeof Ionicons.glyphMap}
                   size={18}
-                  color={isSelected ? "#007AFF" : "#8E8E93"}
+                  color={getCategoryColor(category.id, isSelected)}
                 />
               </Animated.View>
               
@@ -136,7 +201,7 @@ export default function CategoryFilter() {
                   {
                     color: animatedValues[category.id].interpolate({
                       inputRange: [0, 1],
-                      outputRange: ['#8E8E93', '#007AFF']
+                      outputRange: [themeColors.textSecondary, getCategoryColor(category.id, true)]
                     })
                   }
                 ]}
@@ -167,12 +232,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginHorizontal: 4,
     // iOS-style shadow (only for the button)
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
     shadowRadius: 2,
     // Android elevation
     elevation: 1,
+    // shadowColor, shadowOpacity, backgroundColor, and borderColor handled dynamically
   },
   iconContainer: {
     width: 36,

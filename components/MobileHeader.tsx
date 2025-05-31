@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SearchBar from "./SearchBar";
@@ -21,21 +21,31 @@ export default function MobileHeader({
   showProfile = true,
 }: MobileHeaderProps) {
   const navigation = useNavigation();
+  const colorScheme = useColorScheme();
+  
+  // Theme colors
+  const themeColors = {
+    background: colorScheme === 'dark' ? '#121212' : '#fff',
+    text: colorScheme === 'dark' ? '#ffffff' : '#000000',
+    subText: colorScheme === 'dark' ? '#cccccc' : '#666666',
+    border: colorScheme === 'dark' ? '#333333' : '#e5e7eb',
+    icon: colorScheme === 'dark' ? '#ffffff' : '#000000',
+  };
 
   return (
     <>
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: themeColors.background, borderBottomColor: themeColors.border }]}>
         <View style={styles.leftContainer}>
           {showBack && (
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => navigation.goBack()}
             >
-              <Ionicons name="chevron-back" size={24} color="#000" />
+              <Ionicons name="chevron-back" size={24} color={themeColors.icon} />
             </TouchableOpacity>
           )}
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={[styles.title, { color: themeColors.text }]}>{title}</Text>
           </View>
         </View>
         <View style={styles.rightContainer}>
@@ -49,7 +59,7 @@ export default function MobileHeader({
           )} */}
           {showNotification && (
             <TouchableOpacity style={styles.iconButton}>
-              <Ionicons name="notifications" size={22} color="#000" />
+              <Ionicons name="notifications" size={22} color={themeColors.icon} />
             </TouchableOpacity>
           )}
           {showProfile && (
@@ -75,8 +85,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 56,
     // borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    backgroundColor: "#fff",
+    // borderBottomColor and backgroundColor are now handled dynamically
   },
   leftContainer: {
     flexDirection: "row",
@@ -91,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    // borderBottomColor is now handled dynamically
   },
   backButton: {
     marginRight: 8,
@@ -104,6 +113,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "600",
     fontFamily: "Pacifico",
+    // color is now handled dynamically
   },
   rightContainer: {
     flexDirection: "row",

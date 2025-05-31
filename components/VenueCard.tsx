@@ -1,5 +1,5 @@
 import type React from "react"
-import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from "react-native"
+import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, useColorScheme } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
@@ -35,12 +35,27 @@ export default function VenueCard({
   children,
 }: VenueCardProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+  const colorScheme = useColorScheme()
+  
+  // Theme colors
+  const themeColors = {
+    cardBackground: colorScheme === 'dark' ? '#1e1e1e' : '#FFFFFF',
+    textPrimary: colorScheme === 'dark' ? '#ffffff' : '#000000',
+    textSecondary: colorScheme === 'dark' ? '#aaaaaa' : '#636366',
+    textTertiary: colorScheme === 'dark' ? '#888888' : '#8E8E93',
+    shadow: colorScheme === 'dark' ? '#000000' : '#000000',
+    shadowOpacity: colorScheme === 'dark' ? 0.3 : 0.12
+  }
 
   // Vertical card (default) - Apple-inspired design
   if (variant === "default") {
     return (
       <TouchableOpacity
-        style={styles.verticalCard}
+        style={[styles.verticalCard, {
+          backgroundColor: themeColors.cardBackground,
+          shadowColor: themeColors.shadow,
+          shadowOpacity: themeColors.shadowOpacity
+        }]}
         onPress={() => navigation.navigate("VenueDetail", { id })}
         activeOpacity={0.9}
       >
@@ -84,18 +99,18 @@ export default function VenueCard({
 
         <View style={styles.verticalContent}>
           <View style={styles.verticalHeader}>
-            <Text style={styles.name} numberOfLines={1}>{name}</Text>
+            <Text style={[styles.name, { color: themeColors.textPrimary }]} numberOfLines={1}>{name}</Text>
             
             <View style={styles.locationContainer}>
-              <Ionicons name="location-outline" size={12} color="#8E8E93" />
-              <Text style={styles.locationText} numberOfLines={1}>
+              <Ionicons name="location-outline" size={12} color={themeColors.textTertiary} />
+              <Text style={[styles.locationText, { color: themeColors.textTertiary }]} numberOfLines={1}>
                 {location}
                 {distance && ` · ${distance}`}
               </Text>
             </View>
           </View>
           
-          <Text style={styles.description} numberOfLines={2}>{description}</Text>
+          <Text style={[styles.description, { color: themeColors.textSecondary }]} numberOfLines={2}>{description}</Text>
         </View>
       </TouchableOpacity>
     )
@@ -104,7 +119,11 @@ export default function VenueCard({
   // Horizontal card (list view) - Apple-inspired design
   return (
     <TouchableOpacity
-      style={styles.horizontalCard}
+      style={[styles.horizontalCard, {
+        backgroundColor: themeColors.cardBackground,
+        shadowColor: themeColors.shadow,
+        shadowOpacity: themeColors.shadowOpacity
+      }]}
       onPress={() => navigation.navigate("VenueDetail", { id })}
       activeOpacity={0.9}
     >
@@ -148,14 +167,21 @@ export default function VenueCard({
 
       <View style={styles.horizontalContent}>
         <View>
-          <Text style={styles.name} numberOfLines={1}>{name}</Text>
-          <Text style={styles.description} numberOfLines={2}>{description}</Text>
+          <Text style={[styles.name, { color: themeColors.textPrimary }]} numberOfLines={1}>{name}</Text>
+          <Text style={[styles.description, { color: themeColors.textSecondary }]} numberOfLines={2}>{description}</Text>
+          
+          {openingHours && (
+            <View style={styles.openingHoursContainer}>
+              <Ionicons name="time-outline" size={12} color={themeColors.textTertiary} />
+              <Text style={[styles.openingHoursText, { color: themeColors.textTertiary }]}>{openingHours}</Text>
+            </View>
+          )}
         </View>
         
         <View style={styles.horizontalFooter}>
           <View style={styles.locationContainer}>
-            <Ionicons name="location-outline" size={12} color="#8E8E93" />
-            <Text style={styles.locationText} numberOfLines={1}>
+            <Ionicons name="location-outline" size={12} color={themeColors.textTertiary} />
+            <Text style={[styles.locationText, { color: themeColors.textTertiary }]} numberOfLines={1}>
               {location}
               {distance && ` · ${distance}`}
             </Text>
@@ -169,17 +195,15 @@ export default function VenueCard({
 const styles = StyleSheet.create({
   // Vertical Card Styles (Default)
   verticalCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     overflow: "hidden",
     marginBottom: 8,
     // iOS-style shadow
-    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
     shadowRadius: 8,
     // Android elevation
     elevation: 4,
+    // backgroundColor, shadowColor and shadowOpacity handled dynamically
   },
   verticalImageContainer: {
     position: "relative",
@@ -201,18 +225,16 @@ const styles = StyleSheet.create({
   // Horizontal Card Styles
   horizontalCard: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     overflow: "hidden",
     marginBottom: 16,
     height: 120,
     // iOS-style shadow
-    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
     shadowRadius: 8,
     // Android elevation
     elevation: 4,
+    // backgroundColor, shadowColor and shadowOpacity handled dynamically
   },
   horizontalImageContainer: {
     position: "relative",
@@ -239,17 +261,17 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Outfitsemibold',
     fontWeight: "600",
-    color: "#000000",
     marginBottom: 4,
     letterSpacing: 0.25,
+    // color handled dynamically
   },
   description: {
     fontSize: 15,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Outfitregular',
     fontWeight: "400",
-    color: "#636366", // iOS secondary text color
     marginBottom: 6,
     lineHeight: 20,
+    // color handled dynamically
   },
   locationContainer: {
     flexDirection: "row",
@@ -259,9 +281,9 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 12,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Outfitmedium',
-    color: "#8E8E93", // iOS tertiary text color
     marginLeft: 4,
     letterSpacing: 0.15,
+    // color handled dynamically
   },
   
   // Badge Styles - For both rating and hours badges
@@ -328,6 +350,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 4,
     letterSpacing: 0.25,
+  },
+  // Opening hours container & text styles
+  openingHoursContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  openingHoursText: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Outfitmedium',
+    marginLeft: 4,
+    letterSpacing: 0.15,
   },
 });
 

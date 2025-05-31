@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Button } from "react-native"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Button, useColorScheme } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { NavigatorScreenParams } from "@react-navigation/native"
@@ -85,6 +85,18 @@ const getFormattedOpeningHours = (hours: Venue['operatingHours']) => {
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+  const colorScheme = useColorScheme();
+  
+  // Theme colors
+  const themeColors = {
+    background: colorScheme === 'dark' ? '#121212' : '#fff',
+    text: colorScheme === 'dark' ? '#ffffff' : '#000000',
+    subText: colorScheme === 'dark' ? '#cccccc' : '#666666',
+    card: colorScheme === 'dark' ? '#1e1e1e' : '#ffffff',
+    border: colorScheme === 'dark' ? '#333333' : '#cccccc',
+    primary: '#3b82f6',
+    loading: colorScheme === 'dark' ? '#ffffff' : '#0000ff'
+  }
   
   // State variables inside the component
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -119,8 +131,8 @@ export default function HomeScreen() {
   // Show loading indicator while fetching data
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: themeColors.background }}>
+        <ActivityIndicator size="large" color={themeColors.loading} />
       </View>
     );
   }
@@ -154,24 +166,24 @@ export default function HomeScreen() {
     };
     
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <Text style={{ fontSize: 16, textAlign: 'center', marginBottom: 20 }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: themeColors.background }}>
+        <Text style={{ fontSize: 16, textAlign: 'center', marginBottom: 20, color: themeColors.text }}>
           {error}
         </Text>
-        <Button title="Retry" onPress={handleRetry} />
+        <Button title="Retry" onPress={handleRetry} color={themeColors.primary} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={["top"]}>
       <MobileHeader showBack={false} />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
         <CategoryFilter />
         
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Venues</Text>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Popular Venues</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AllVenues')}>
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
@@ -201,7 +213,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   heroSection: {
     padding: 16,
@@ -221,9 +232,9 @@ const styles = StyleSheet.create({
   categoryItem: {
     padding: 8,
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 8,
     marginRight: 8,
+    // borderColor handled by theme in component
   },
   categoryIcon: {
     marginBottom: 4,
@@ -250,7 +261,7 @@ const styles = StyleSheet.create({
   seeAll: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#3b82f6",
+    color: "#3b82f6", // Primary blue color for both themes
   },
   venueList: {
     gap: 16,
