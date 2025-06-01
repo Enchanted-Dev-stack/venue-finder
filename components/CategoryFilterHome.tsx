@@ -1,216 +1,179 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Animated, useColorScheme } from "react-native"
+import { useState } from "react"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, useColorScheme } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { BlurView } from "expo-blur"
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, interpolateColor } from "react-native-reanimated"
 
 type Category = {
   id: string
   name: string
-  icon: string | JSX.Element
+  icon: string
+  textWidth?: number
 }
 
-// Define category-specific theme colors
+// Define category-specific theme colors with more vibrant colors
 const categoryColors = {
-  all: { color: '#007AFF', lightBg: 'rgba(0, 122, 255, 0.1)', darkBg: 'rgba(0, 122, 255, 0.2)' },
-  restaurants: { color: '#FF9500', lightBg: 'rgba(255, 149, 0, 0.1)', darkBg: 'rgba(255, 149, 0, 0.2)' },
-  cafes: { color: '#AF52DE', lightBg: 'rgba(175, 82, 222, 0.1)', darkBg: 'rgba(175, 82, 222, 0.2)' },
-  bars: { color: '#5856D6', lightBg: 'rgba(88, 86, 214, 0.1)', darkBg: 'rgba(88, 86, 214, 0.2)' },
-  gaming: { color: '#32D74B', lightBg: 'rgba(50, 215, 75, 0.1)', darkBg: 'rgba(50, 215, 75, 0.2)' },
-  pizza: { color: '#FF3B30', lightBg: 'rgba(255, 59, 48, 0.1)', darkBg: 'rgba(255, 59, 48, 0.2)' },
-  music: { color: '#FF2D55', lightBg: 'rgba(255, 45, 85, 0.1)', darkBg: 'rgba(255, 45, 85, 0.2)' },
+  all: { color: '#007AFF' },
+  restaurants: { color: '#FF9500' },
+  cafes: { color: '#AF52DE' },
+  bars: { color: '#5856D6' },
+  gaming: { color: '#32D74B' },
+  pizza: { color: '#FF3B30' },
+  music: { color: '#FF2D55' }
 }
+
+// Calculate approximate text width based on character count
+const getTextWidth = (text: string): number => {
+  // Average width per character (in pixels) - can be adjusted
+  const avgCharWidth = 8;
+  // Base padding (left and right) + icon width + icon margin
+  const basePadding = 24 + 20 + 8;
+  // Calculate text width + add padding + some buffer
+  return Math.min(Math.max(text.length * avgCharWidth + basePadding, 80), 160);
+};
 
 const categories: Category[] = [
-  {
-    id: "all",
-    name: "All",
-    icon: "grid-outline",
-  },
-  {
-    id: "restaurants",
-    name: "Restaurants",
-    icon: "restaurant-outline",
-  },
-  {
-    id: "cafes",
-    name: "Cafes",
-    icon: "cafe-outline",
-  },
-  {
-    id: "bars",
-    name: "Bars",
-    icon: "wine-outline",
-  },
-  {
-    id: "gaming",
-    name: "Gaming",
-    icon: "game-controller-outline",
-  },
-  {
-    id: "pizza",
-    name: "Pizza",
-    icon: "pizza-outline",
-  },
-  {
-    id: "music",
-    name: "Live Music",
-    icon: "musical-notes-outline",
-  },
-]
+  { id: "all", name: "All", icon: "grid-outline" },
+  { id: "restaurants", name: "Restaurants", icon: "restaurant-outline" },
+  { id: "cafes", name: "Cafes", icon: "cafe-outline" },
+  { id: "bars", name: "Bars", icon: "wine-outline" },
+  { id: "gaming", name: "Gaming", icon: "game-controller-outline" },
+  { id: "pizza", name: "Pizza", icon: "pizza-outline" },
+  { id: "music", name: "Live Music", icon: "musical-notes-outline" }
+].map(category => ({
+  ...category,
+  textWidth: getTextWidth(category.name)
+}))
 
 export default function CategoryFilter() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [selectedCategory, setSelectedCategory] = useState("all")
   const colorScheme = useColorScheme()
-  
-  // Theme colors
-  const themeColors = {
-    background: colorScheme === 'dark' ? '#121212' : '#fff',
-    text: colorScheme === 'dark' ? '#ffffff' : '#000000',
-    textSecondary: colorScheme === 'dark' ? '#aaaaaa' : '#8E8E93',
-    buttonBackground: colorScheme === 'dark' ? 'rgba(50, 50, 50, 0.8)' : 'rgba(242, 242, 247, 0.8)',
-    buttonBackgroundSelected: colorScheme === 'dark' ? 'rgba(50, 50, 50, 0.9)' : 'rgba(242, 242, 247, 0.9)',
-    buttonBorder: colorScheme === 'dark' ? 'rgba(80, 80, 80, 0.2)' : 'transparent',
-    buttonBorderSelected: colorScheme === 'dark' ? 'rgba(0, 122, 255, 0.4)' : 'rgba(0, 122, 255, 0.2)',
-    iconBackground: colorScheme === 'dark' ? '#2c2c2c' : '#FFFFFF',
-    iconBackgroundSelected: colorScheme === 'dark' ? 'rgba(0, 122, 255, 0.2)' : 'rgba(0, 122, 255, 0.1)',
-    iconColor: colorScheme === 'dark' ? '#999999' : '#8E8E93',
-    shadow: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.1)'
-  }
-  
-  // Get color for specific category
-  const getCategoryColor = (categoryId: string, isSelected: boolean) => {
-    const defaultColor = '#8E8E93'
-    const colorInfo = categoryColors[categoryId as keyof typeof categoryColors]
-    return isSelected ? colorInfo?.color || '#007AFF' : defaultColor
-  }
-  
-  // Get background color for specific category
-  const getCategoryBgColor = (categoryId: string, isSelected: boolean) => {
-    const colorInfo = categoryColors[categoryId as keyof typeof categoryColors]
-    const isDark = colorScheme === 'dark'
-    
-    if (isSelected) {
-      return isDark ? colorInfo?.darkBg || 'rgba(0, 122, 255, 0.2)' : colorInfo?.lightBg || 'rgba(0, 122, 255, 0.1)'
-    }
-    return isDark ? '#2c2c2c' : '#FFFFFF'
-  }
-  
-  // Get border color for specific category
-  const getCategoryBorderColor = (categoryId: string, isSelected: boolean) => {
-    const colorInfo = categoryColors[categoryId as keyof typeof categoryColors]
-    if (isSelected) {
-      return `${colorInfo?.color}40` || 'rgba(0, 122, 255, 0.4)' // 40 = 25% opacity in hex
-    }
-    return colorScheme === 'dark' ? 'rgba(80, 80, 80, 0.2)' : 'transparent'
-  }
-  
-  const animatedValues = useRef(
-    categories.reduce((acc, category) => {
-      acc[category.id] = new Animated.Value(category.id === "all" ? 1 : 0)
-      return acc
-    }, {} as Record<string, Animated.Value>)
-  ).current
+  const isDark = colorScheme === 'dark'
 
-  const handleCategoryPress = (categoryId: string) => {
-    setSelectedCategory(categoryId)
-    
-    // Animate previous selection out
-    Animated.timing(animatedValues[selectedCategory], {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start()
-    
-    // Animate new selection in
-    Animated.timing(animatedValues[categoryId], {
-      toValue: 1,
-      duration: 200,
-      useNativeDriver: false,
-    }).start()
+  // Animation configuration
+  const springConfig = {
+    damping: 15,
+    stiffness: 120,
+    mass: 1,
+    overshootClamping: false
+  }
+
+  // Get color for the category
+  const getCategoryColor = (categoryId: string, isSelected: boolean) => {
+    const colorInfo = categoryColors[categoryId as keyof typeof categoryColors]
+    if (isSelected) {
+      return colorInfo?.color || '#007AFF'
+    }
+    return isDark ? '#aaaaaa' : '#8E8E93' // Default color
   }
 
   return (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false} 
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
       decelerationRate="fast"
-      snapToAlignment="center"
     >
       {categories.map((category) => {
-        const isSelected = selectedCategory === category.id
+        // Track this category's selected state with a shared value
+        const isActive = useSharedValue(category.id === selectedCategory ? 1 : 0)
+        const categoryColor = getCategoryColor(category.id, category.id === selectedCategory)
         
-        const animatedStyle = {
-          backgroundColor: animatedValues[category.id].interpolate({
-            inputRange: [0, 1],
-            outputRange: [
-              themeColors.buttonBackground,
-              themeColors.buttonBackgroundSelected
-            ]
-          }),
-          borderColor: animatedValues[category.id].interpolate({
-            inputRange: [0, 1],
-            outputRange: [
-              getCategoryBorderColor(category.id, false),
-              getCategoryBorderColor(category.id, true)
-            ]
-          }),
-          transform: [{
-            scale: animatedValues[category.id].interpolate({
-              inputRange: [0, 1],
-              outputRange: [1, 1.05]
-            })
-          }],
-          elevation: animatedValues[category.id].interpolate({
-            inputRange: [0, 1],
-            outputRange: [1, 4]
+        // Animated styles for the button
+        const animatedButtonStyle = useAnimatedStyle(() => {
+          return {
+            width: withSpring(
+              isActive.value ? (category.textWidth || 130) : 44,
+              springConfig
+            ),
+            transform: [{ 
+              scale: withSpring(
+                isActive.value ? 1.05 : 1, 
+                springConfig
+              ) 
+            }],
+            borderColor: interpolateColor(
+              isActive.value,
+              [0, 1],
+              [
+                isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+                categoryColors[category.id as keyof typeof categoryColors]?.color || '#007AFF'
+              ]
+            )
+          }
+        })
+        
+        // Animated styles for the text
+        const animatedTextStyle = useAnimatedStyle(() => {
+          return {
+            opacity: withTiming(isActive.value, { duration: 200 }),
+            transform: [{ 
+              translateX: withSpring(
+                isActive.value ? 0 : -10, 
+                springConfig
+              ) 
+            }]
+          }
+        })
+        
+        // Handle selection
+        const handlePress = () => {
+          // Update all categories' animation values
+          categories.forEach(c => {
+            if (c.id === category.id) {
+              isActive.value = 1
+            } else if (c.id === selectedCategory) {
+              // We need a way to access the previous selected category's isActive value
+              // This is handled through the state update below
+            }
           })
+          
+          // Update state (which will trigger re-render and update isActive values)
+          setSelectedCategory(category.id)
+        }
+        
+        // Update animation value when selected category changes
+        if (category.id === selectedCategory && isActive.value !== 1) {
+          isActive.value = 1
+        } else if (category.id !== selectedCategory && isActive.value !== 0) {
+          isActive.value = 0
         }
         
         return (
-          <Animated.View key={category.id} style={[styles.categoryButton, animatedStyle]}>
-            <TouchableOpacity
-              style={{ width: '100%', alignItems: 'center' }}
-              activeOpacity={0.7}
-              onPress={() => handleCategoryPress(category.id)}
+          <TouchableOpacity
+            key={category.id}
+            activeOpacity={0.7}
+            onPress={handlePress}
+          >
+            <Animated.View 
+              style={[
+                styles.categoryButton,
+                { backgroundColor: isDark ? 'rgba(50,50,50,0.4)' : 'rgba(250,250,250,0.8)' },
+                animatedButtonStyle
+              ]}
             >
-              <Animated.View style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: animatedValues[category.id].interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [
-                      themeColors.iconBackground,
-                      getCategoryBgColor(category.id, true)
-                    ]
-                  })
-                }
-              ]}>
+              <View style={styles.contentContainer}>
                 <Ionicons
                   name={category.icon as keyof typeof Ionicons.glyphMap}
-                  size={18}
-                  color={getCategoryColor(category.id, isSelected)}
+                  size={20}
+                  color={categoryColor}
+                  style={styles.icon}
                 />
-              </Animated.View>
-              
-              <Animated.Text 
-                style={[
-                  styles.categoryName,
-                  {
-                    color: animatedValues[category.id].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [themeColors.textSecondary, getCategoryColor(category.id, true)]
-                    })
-                  }
-                ]}
-                numberOfLines={1}
-              >
-                {category.name}
-              </Animated.Text>
-            </TouchableOpacity>
-          </Animated.View>
+                
+                <Animated.Text 
+                  style={[
+                    styles.categoryName,
+                    { color: categoryColor, marginLeft: 8 },
+                    animatedTextStyle
+                  ]}
+                  numberOfLines={1}
+                >
+                  {category.name}
+                </Animated.Text>
+              </View>
+            </Animated.View>
+          </TouchableOpacity>
         )
       })}
     </ScrollView>
@@ -219,38 +182,42 @@ export default function CategoryFilter() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    flexDirection: "row",
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     gap: 10,
+    alignItems: 'center'
   },
   categoryButton: {
-    alignItems: "center",
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    aspectRatio: 1,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
-    marginHorizontal: 4,
-    // iOS-style shadow (only for the button)
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
-    // Android elevation
-    elevation: 1,
-    // shadowColor, shadowOpacity, backgroundColor, and borderColor handled dynamically
+    overflow: 'hidden',
+    // Light container shadow
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.08,
+    // shadowRadius: 2,
+    // Light Android elevation
+    // elevation: 1,
   },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 6,
+  selectedButton: {
+    transform: [{ scale: 1.05 }],
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: '100%',
+    paddingHorizontal: 12,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    textAlign: 'center',
   },
   categoryName: {
-    fontSize: 12,
-    letterSpacing: -0.2,
+    fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? undefined : 'Outfitmedium',
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,
-  },
+  }
 })
-

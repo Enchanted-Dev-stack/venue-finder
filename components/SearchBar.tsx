@@ -18,19 +18,22 @@ export default function SearchBar({ style }: SearchBarProps) {
   const themeColors = {
     background: colorScheme === 'dark' ? '#121212' : '#fff',
     searchBackground: colorScheme === 'dark' ? '#2c2c2c' : '#f3f4f6',
-    modalBackground: colorScheme === 'dark' ? '#1e1e1e' : 'white',
+    modalBackground: colorScheme === 'dark' ? '#1a1a1a' : 'white',
     text: colorScheme === 'dark' ? '#ffffff' : '#000000',
     placeholderText: colorScheme === 'dark' ? '#9ca3af' : '#6b7280',
-    textSecondary: colorScheme === 'dark' ? '#a3a3a3' : '#6b7280',
-    textTertiary: colorScheme === 'dark' ? '#737373' : '#4b5563',
+    textSecondary: colorScheme === 'dark' ? '#dadada' : '#6b7280',
+    textTertiary: colorScheme === 'dark' ? '#b0b0b0' : '#4b5563',
     border: colorScheme === 'dark' ? '#333333' : '#f3f4f6',
-    switchTrackOff: colorScheme === 'dark' ? '#525252' : '#e5e7eb',
+    switchTrackOff: colorScheme === 'dark' ? '#3a3a3a' : '#e5e7eb',
     switchTrackOn: colorScheme === 'dark' ? '#3b82f6' : '#bfdbfe',
-    switchThumbOff: colorScheme === 'dark' ? '#a3a3a3' : '#f4f3f4',
-    switchThumbOn: colorScheme === 'dark' ? '#3b82f6' : '#3b82f6',
+    switchThumbOff: colorScheme === 'dark' ? '#b0b0b0' : '#f4f3f4',
+    switchThumbOn: colorScheme === 'dark' ? '#ffffff' : '#3b82f6',
     buttonPrimary: colorScheme === 'dark' ? '#3b82f6' : '#3b82f6',
-    buttonOutline: colorScheme === 'dark' ? '#333333' : '#d1d5db',
-    modalOverlay: 'rgba(0, 0, 0, 0.5)'
+    buttonOutline: colorScheme === 'dark' ? '#3a3a3a' : '#d1d5db',
+    modalOverlay: 'rgba(0, 0, 0, 0.7)',
+    sliderTrack: colorScheme === 'dark' ? '#3a3a3a' : '#e5e7eb',
+    sliderThumb: colorScheme === 'dark' ? '#ffffff' : '#3b82f6',
+    sliderMinTrack: '#3b82f6'
   }
   
   // External values used for display
@@ -142,9 +145,9 @@ export default function SearchBar({ style }: SearchBarProps) {
                       value={priceSliderValue}
                       onValueChange={handlePriceChange}
                       onSlidingComplete={handlePriceSlidingComplete}
-                      minimumTrackTintColor="#3b82f6"
-                      maximumTrackTintColor="#e5e7eb"
-                      thumbTintColor="#3b82f6"
+                      minimumTrackTintColor={themeColors.sliderMinTrack}
+                      maximumTrackTintColor={themeColors.sliderTrack}
+                      thumbTintColor={themeColors.sliderThumb}
                     />
                   </View>
                 ) : (
@@ -157,9 +160,9 @@ export default function SearchBar({ style }: SearchBarProps) {
                     value={priceSliderValue}
                     onValueChange={handlePriceChange}
                     onSlidingComplete={handlePriceSlidingComplete}
-                    minimumTrackTintColor="#3b82f6"
-                    maximumTrackTintColor="#e5e7eb"
-                    thumbTintColor="#3b82f6"
+                    minimumTrackTintColor={themeColors.sliderMinTrack}
+                    maximumTrackTintColor={themeColors.sliderTrack}
+                    thumbTintColor={themeColors.sliderThumb}
                     tapToSeek={true}
                   />
                 )}
@@ -175,8 +178,8 @@ export default function SearchBar({ style }: SearchBarProps) {
 
             <View style={styles.filterSection}>
               <View style={styles.filterTitleRow}>
-                <Text style={styles.filterTitle}>Distance</Text>
-                <Text style={styles.sliderValue}>{distanceDisplay} mi</Text>
+                <Text style={[styles.filterTitle, { color: themeColors.text }]}>Distance</Text>
+                <Text style={[styles.sliderValue, { color: themeColors.buttonPrimary }]}>{distanceDisplay} mi</Text>
               </View>
               
               <View style={styles.sliderContainer}>
@@ -191,9 +194,9 @@ export default function SearchBar({ style }: SearchBarProps) {
                       value={distanceSliderValue}
                       onValueChange={handleDistanceChange}
                       onSlidingComplete={handleDistanceSlidingComplete}
-                      minimumTrackTintColor="#3b82f6"
-                      maximumTrackTintColor="#e5e7eb"
-                      thumbTintColor="#3b82f6"
+                      minimumTrackTintColor={themeColors.sliderMinTrack}
+                      maximumTrackTintColor={themeColors.sliderTrack}
+                      thumbTintColor={themeColors.sliderThumb}
                     />
                   </View>
                 ) : (
@@ -206,22 +209,22 @@ export default function SearchBar({ style }: SearchBarProps) {
                     value={distanceSliderValue}
                     onValueChange={handleDistanceChange}
                     onSlidingComplete={handleDistanceSlidingComplete}
-                    minimumTrackTintColor="#3b82f6"
-                    maximumTrackTintColor="#e5e7eb"
-                    thumbTintColor="#3b82f6"
+                    minimumTrackTintColor={themeColors.sliderMinTrack}
+                    maximumTrackTintColor={themeColors.sliderTrack}
+                    thumbTintColor={themeColors.sliderThumb}
                     tapToSeek={true}
                   />
                 )}
                 
                 <View style={styles.sliderLabels}>
-                  <Text style={styles.sliderLabel}>Nearby</Text>
-                  <Text style={styles.sliderLabel}>20 miles</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.textSecondary }]}>Nearby</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.textSecondary }]}>20 miles</Text>
                 </View>
               </View>
             </View>
 
             <View style={styles.filterSection}>
-              <Text style={styles.filterTitle}>Features</Text>
+              <Text style={[styles.filterTitle, { color: themeColors.text }]}>Features</Text>
 
               <View style={styles.switchRow}>
                 <Text style={[styles.switchLabel, { color: themeColors.textTertiary }]}>Open now</Text>

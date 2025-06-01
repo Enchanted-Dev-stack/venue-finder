@@ -34,7 +34,7 @@ export default function MobileHeader({
 
   return (
     <>
-      <View style={[styles.header, { backgroundColor: themeColors.background, borderBottomColor: themeColors.border }]}>
+      <View style={[styles.header, { backgroundColor: themeColors.background }]}>
         <View style={styles.leftContainer}>
           {showBack && (
             <TouchableOpacity
@@ -72,7 +72,7 @@ export default function MobileHeader({
           )}
         </View>
       </View>
-      {showSearch && <SearchBar style={styles.searchBar}/>}
+      {showSearch && <SearchBar style={[styles.searchBar, { borderBottomColor: themeColors.border }]}/>}
     </>
   );
 }
