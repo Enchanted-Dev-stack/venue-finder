@@ -1,0 +1,17 @@
+runtime: nodejs18
+
+env: standard
+instance_class: F1
+
+handlers:
+  - url: /.*
+    secure: always
+    redirect_http_response_code: 301
+    script: auto
+
+env_variables:
+  NODE_ENV: "production"
+  # You'll need to set these in Google Cloud console after deployment
+  # MONGO_URI: "your_mongo_connection_string"
+  # JWT_SECRET: "your_jwt_secret"
+  # Other environment variables from your .env file

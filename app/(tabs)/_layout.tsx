@@ -1,20 +1,31 @@
 import { Tabs } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
+  const colorScheme = useColorScheme();
+  
+  // Theme colors
+  const themeColors = {
+    tabBarBackground: colorScheme === 'dark' ? '#1a1a1a' : 'white',
+    tabBarBorder: colorScheme === 'dark' ? '#333333' : '#F3F4F6',
+    tabBarActive: '#3b82f6', // Keep blue for both themes
+    tabBarInactive: colorScheme === 'dark' ? '#8899AA' : '#94A3B8',
+    labelStyle: colorScheme === 'dark' ? { color: '#ffffff' } : undefined,
+  };
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: '#3b82f6',
-        tabBarInactiveTintColor: '#94A3B8',
+        tabBarActiveTintColor: themeColors.tabBarActive,
+        tabBarInactiveTintColor: themeColors.tabBarInactive,
+        tabBarLabelStyle: themeColors.labelStyle,
         tabBarStyle: {
-          // height: 6/0,
-          backgroundColor: 'white',
+          // height: 60,
+          backgroundColor: themeColors.tabBarBackground,
           borderTopWidth: 1,
-          borderTopColor: '#F3F4F6',
+          borderTopColor: themeColors.tabBarBorder,
           paddingVertical: 5,
         },
       }}>
@@ -27,7 +38,7 @@ export default function TabLayout() {
               <Ionicons 
                 name="home-outline" 
                 size={22} 
-                color={focused ? '#3b82f6' : '#94A3B8'} 
+                color={focused ? themeColors.tabBarActive : themeColors.tabBarInactive} 
               />
             </View>
           ),
@@ -42,7 +53,7 @@ export default function TabLayout() {
               <Ionicons 
                 name="search-outline" 
                 size={22} 
-                color={focused ? '#3b82f6' : '#94A3B8'} 
+                color={focused ? themeColors.tabBarActive : themeColors.tabBarInactive} 
               />
             </View>
           ),
@@ -57,7 +68,7 @@ export default function TabLayout() {
               <Ionicons 
                 name="map-outline" 
                 size={22} 
-                color={focused ? '#3b82f6' : '#94A3B8'} 
+                color={focused ? themeColors.tabBarActive : themeColors.tabBarInactive} 
               />
             </View>
           ),
@@ -72,7 +83,7 @@ export default function TabLayout() {
               <Ionicons 
                 name="person-outline" 
                 size={22} 
-                color={focused ? '#3b82f6' : '#94A3B8'} 
+                color={focused ? themeColors.tabBarActive : themeColors.tabBarInactive} 
               />
             </View>
           ),

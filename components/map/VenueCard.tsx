@@ -1,4 +1,4 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native"
+import { View, Text, Image, StyleSheet, TouchableOpacity, useColorScheme } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 
 type VenueCardProps = {
@@ -15,6 +15,15 @@ type VenueCardProps = {
   }
   onPress: () => void
   isDetailedView: boolean
+  themeColors?: {
+    background: string
+    cardBackground: string
+    text: string
+    textSecondary: string
+    border: string
+    toggleButton: string
+    icon: string
+  }
 }
 
 export default function VenueCard({
@@ -28,11 +37,33 @@ export default function VenueCard({
   isDetailedView,
   openHours,
   amenities,
+  themeColors: customThemeColors,
 }: VenueCardProps) {
+  // Use a stable image index based on the venue name
+  // This ensures the same venue always shows the same image
+  const imageIndex = name.charCodeAt(0) % 6;
+  const colorScheme = useColorScheme()
+  
+  // Default theme colors if not provided by parent
+  const defaultThemeColors = {
+    background: colorScheme === 'dark' ? '#121212' : '#fff',
+    cardBackground: colorScheme === 'dark' ? '#1e1e1e' : '#fff',
+    text: colorScheme === 'dark' ? '#ffffff' : '#1f2937',
+    textSecondary: colorScheme === 'dark' ? '#dadada' : '#6b7280',
+    border: colorScheme === 'dark' ? '#333333' : '#f0f0f0',
+    toggleButton: colorScheme === 'dark' ? '#333333' : '#f3f4f6',
+    icon: colorScheme === 'dark' ? '#dadada' : '#6b7280'
+  }
+  
+  // Use provided themeColors or default to system-generated ones
+  const themeColors = customThemeColors || defaultThemeColors
   if (isDetailedView) {
     return (
       <TouchableOpacity 
-        style={styles.detailedCard}
+        style={[styles.detailedCard, { 
+          backgroundColor: themeColors.cardBackground,
+          borderColor: themeColors.border 
+        }]}
         onPress={onPress}
         activeOpacity={0.7}
       >
@@ -45,7 +76,7 @@ export default function VenueCard({
               'https://images.unsplash.com/photo-1559305616-3f99cd43e353',
               'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17',
               'https://images.unsplash.com/photo-1467003909585-2f8a72700288'
-            ][Math.floor(Math.random() * 6)] + '?w=400&h=300&fit=crop'}}
+            ][imageIndex] + '?w=400&h=300&fit=crop'}}
             style={styles.detailedImage}
           />
           <View style={styles.ratingBadge}>
@@ -55,18 +86,18 @@ export default function VenueCard({
         </View>
         
         <View style={styles.detailedContent}>
-          <Text style={styles.name} numberOfLines={1}>{name}</Text>
-          <Text style={styles.type}>{type.replace('_', ' ')}</Text>
+          <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={1}>{name}</Text>
+          <Text style={[styles.type, { color: themeColors.textSecondary }]}>{type.replace('_', ' ')}</Text>
           
           <View style={styles.details}>
             <View style={styles.detailItem}>
-              <Ionicons name="time-outline" size={14} color="#6b7280" />
-              <Text style={styles.detailText}>{openHours}</Text>
+              <Ionicons name="time-outline" size={14} color={themeColors.icon} />
+              <Text style={[styles.detailText, { color: themeColors.textSecondary }]}>{openHours}</Text>
             </View>
             
             <View style={styles.detailItem}>
-              <Ionicons name="pricetag-outline" size={14} color="#6b7280" />
-              <Text style={styles.detailText}>
+              <Ionicons name="pricetag-outline" size={14} color={themeColors.icon} />
+              <Text style={[styles.detailText, { color: themeColors.textSecondary }]}>
                 {pricePerPerson === 0 ? 'Free' : `₹${pricePerPerson}/person`}
               </Text>
             </View>
@@ -74,8 +105,8 @@ export default function VenueCard({
 
           <View style={styles.amenities}>
             {amenities?.slice(0, 3).map((amenity, index) => (
-              <View key={index} style={styles.amenityBadge}>
-                <Text style={styles.amenityText}>
+              <View key={index} style={[styles.amenityBadge, { backgroundColor: themeColors.toggleButton }]}>
+                <Text style={[styles.amenityText, { color: themeColors.textSecondary }]}>
                   {amenity.replace('_', ' ')}
                 </Text>
               </View>
@@ -89,7 +120,10 @@ export default function VenueCard({
   // Completely new compact list view
   return (
     <TouchableOpacity 
-      style={styles.listCard}
+      style={[styles.listCard, { 
+        backgroundColor: themeColors.cardBackground,
+        borderColor: themeColors.border 
+      }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
@@ -100,8 +134,10 @@ export default function VenueCard({
             'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4',
             'https://images.unsplash.com/photo-1554118811-1e0d58224f24',
             'https://images.unsplash.com/photo-1559925393-8be0ec4767c8',
-            'https://images.unsplash.com/photo-1559305616-3f99cd43e353'
-          ][Math.floor(Math.random() * 4)] + '?w=500&h=500&fit=crop' }}
+            'https://images.unsplash.com/photo-1559305616-3f99cd43e353',
+            'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17',
+            'https://images.unsplash.com/photo-1467003909585-2f8a72700288'
+          ][imageIndex] + '?w=500&h=500&fit=crop' }}
           style={styles.listImage}
         />
         <View style={styles.listRatingBadge}>
@@ -113,23 +149,23 @@ export default function VenueCard({
       {/* Right side - Content */}
       <View style={styles.listContent}>
         <View style={styles.listHeader}>
-          <Text style={styles.listName}>{name}</Text>
-          <Text style={styles.listDescription} numberOfLines={2}>
+          <Text style={[styles.listName, { color: themeColors.text }]}>{name}</Text>
+          <Text style={[styles.listDescription, { color: themeColors.textSecondary }]} numberOfLines={2}>
             {description}
           </Text>
         </View>
 
         <View style={styles.listFooter}>
           <View style={styles.listDetailRow}>
-            <Ionicons name="location-outline" size={14} color="#6b7280" />
-            <Text style={styles.listDetailText}>
+            <Ionicons name="location-outline" size={14} color={themeColors.icon} />
+            <Text style={[styles.listDetailText, { color: themeColors.textSecondary }]}>
               {type.replace('_', ' ')} · 0.8 mi
             </Text>
           </View>
           
           <View style={styles.listDetailRow}>
-            <Ionicons name="time-outline" size={14} color="#6b7280" />
-            <Text style={styles.listDetailText}>{openHours}</Text>
+            <Ionicons name="time-outline" size={14} color={themeColors.icon} />
+            <Text style={[styles.listDetailText, { color: themeColors.textSecondary }]}>{openHours}</Text>
           </View>
         </View>
       </View>

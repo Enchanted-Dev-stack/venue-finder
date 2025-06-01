@@ -43,7 +43,8 @@
       },
       "eas": {
         "projectId": "a821342d-abbf-4d1f-899b-e8367e293f39"
-      }
+      },
+      "googleMapsApiKey": "AIzaSyBIXQAlqY90RD35r1Oltebzszf_bVQoijI"
     },
     "owner": "enchanted_dev"
   }

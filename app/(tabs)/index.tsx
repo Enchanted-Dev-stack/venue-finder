@@ -177,7 +177,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={["top"]}>
-      <MobileHeader showBack={false} />
+      <MobileHeader />
       <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
         <CategoryFilter />
         
