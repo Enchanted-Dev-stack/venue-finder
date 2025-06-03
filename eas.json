@@ -14,7 +14,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://operation-plaza-disagree-composed.trycloudflare.com/api",
+        "EXPO_PUBLIC_API_URL": "https://diana-waterproof-baptist-vulnerable.trycloudflare.com/api",
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "dewu7jfr8",
         "EXPO_PUBLIC_CLOUDINARY_API_KEY": "733478331632897",
         "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "venue_finder_profiles",
@@ -24,7 +24,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://operation-plaza-disagree-composed.trycloudflare.com/api",
+        "EXPO_PUBLIC_API_URL": "https://diana-waterproof-baptist-vulnerable.trycloudflare.com/api",
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "dewu7jfr8",
         "EXPO_PUBLIC_CLOUDINARY_API_KEY": "733478331632897",
         "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "venue_finder_profiles",

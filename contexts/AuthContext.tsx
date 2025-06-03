@@ -60,12 +60,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const loadToken = async () => {
       try {
+        console.log('Loading auth state from AsyncStorage...');
         const storedToken = await AsyncStorage.getItem('auth_token');
         const storedUser = await AsyncStorage.getItem('user');
         
         if (storedToken && storedUser) {
+          console.log('Found stored credentials, setting auth state');
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
+          
+          // Validate token with a lightweight API call
+          try {
+            const response = await fetch(`${API_URL}/auth/validate`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${storedToken}`
+              }
+            });
+            
+            if (!response.ok) {
+              console.log('Stored token is invalid, clearing auth state');
+              // If token is invalid, clear the storage and state
+              await AsyncStorage.removeItem('auth_token');
+              await AsyncStorage.removeItem('user');
+              setToken(null);
+              setUser(null);
+            } else {
+              console.log('Token validated successfully');
+            }
+          } catch (validateErr) {
+            // Network error during validation - we'll keep the token and try again later
+            console.log('Token validation failed due to network error');
+          }
+        } else {
+          console.log('No stored credentials found');
         }
       } catch (err) {
         console.error('Failed to load auth state:', err);

@@ -101,6 +101,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    console.log(`[auth.js] User ${user._id} retrieved their profile`); 
 
     res.status(200).json({
       success: true,
@@ -109,6 +110,29 @@ router.get('/me', protect, async (req, res) => {
   } catch (err) {
     console.error('Get me error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// @desc    Validate user token
+// @route   GET /api/auth/validate
+// @access  Private
+router.get('/validate', protect, async (req, res) => {
+  try {
+    console.log(`[auth.js] Token validated successfully for user: ${req.user._id}`);
+    
+    res.status(200).json({
+      success: true,
+      valid: true,
+      message: 'Token is valid',
+      userId: req.user._id
+    });
+  } catch (err) {
+    console.error('[auth.js] Token validation error:', err);
+    res.status(401).json({ 
+      success: false, 
+      valid: false,
+      message: 'Token validation failed' 
+    });
   }
 });
 

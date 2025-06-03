@@ -22,13 +22,12 @@ const ThemedApp = () => {
   // We'll access the theme inside this component after ThemeProvider is available
   return (
     <Stack 
-      initialRouteName="splash"
+      initialRouteName="(tabs)"
       screenOptions={{
         headerShown: false,
         animation: 'fade',
       }}
     >
-      <Stack.Screen name="splash" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="index" />
@@ -91,9 +90,18 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
-      // Hide the expo router splash screen only after fonts are loaded
-      ExpoRouterSplashScreen.hideAsync();
+      // Hide the native splash screen as soon as fonts are loaded
+      SplashScreen.hideAsync()
+        .then(() => {
+          // Hide the expo router splash screen
+          ExpoRouterSplashScreen.hideAsync();
+          
+          // Router will automatically go to the initial route ((tabs) or (auth))
+          // based on the auth state through route protection
+        })
+        .catch(err => {
+          console.warn('Error hiding splash screen:', err);
+        });
     }
   }, [loaded]);
 
